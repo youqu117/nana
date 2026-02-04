@@ -1,0 +1,72 @@
+[
+  {
+    "file": "dog_brown_idle_sheet.png",
+    "animal": "dog",
+    "color": "brown",
+    "type": "idle_sheet",
+    "description": "batch3 brown dog idle animation sheet (4 frames)"
+  },
+  {
+    "file": "dog_brown_static.png",
+    "animal": "dog",
+    "color": "brown",
+    "type": "static",
+    "description": "batch3 brown dog static image"
+  },
+  {
+    "file": "dog_white_idle_sheet.png",
+    "animal": "dog",
+    "color": "white",
+    "type": "idle_sheet",
+    "description": "batch3 white dog idle animation sheet (4 frames)"
+  },
+  {
+    "file": "dog_white_static.png",
+    "animal": "dog",
+    "color": "white",
+    "type": "static",
+    "description": "batch3 white dog static image"
+  },
+  {
+    "file": "dog_grey_idle_sheet.png",
+    "animal": "dog",
+    "color": "grey",
+    "type": "idle_sheet",
+    "description": "batch3 grey dog idle animation sheet (4 frames)"
+  },
+  {
+    "file": "dog_grey_static.png",
+    "animal": "dog",
+    "color": "grey",
+    "type": "static",
+    "description": "batch3 grey dog static image"
+  },
+  {
+    "file": "dog_blue_idle_sheet.png",
+    "animal": "dog",
+    "color": "blue",
+    "type": "idle_sheet",
+    "description": "batch3 blue dog idle animation sheet (4 frames)"
+  },
+  {
+    "file": "dog_blue_static.png",
+    "animal": "dog",
+    "color": "blue",
+    "type": "static",
+    "description": "batch3 blue dog static image"
+  },
+  {
+    "file": "dog_red_idle_sheet.png",
+    "animal": "dog",
+    "color": "red",
+    "type": "idle_sheet",
+    "description": "batch3 red dog idle animation sheet (4 frames)"
+  },
+  {
+    "file": "dog_red_static.png",
+    "animal": "dog",
+    "color": "red",
+    "type": "static",
+    "description": "batch3 red dog static image"
+  }
+]
