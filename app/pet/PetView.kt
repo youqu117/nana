@@ -2,45 +2,38 @@ package app.pet
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
-import android.view.View
+import android.graphics.BitmapFactory
+import android.widget.FrameLayout
+import android.widget.ImageView
 
-class PetView(context: Context) : View(context) {
-    private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
-    private var sprite: Bitmap? = null
-    private var showTapFeedback = false
+class PetView(context: Context) : FrameLayout(context) {
+    private val imageView = ImageView(context)
+    private val normalBitmap: Bitmap?
+    private val tongueBitmap: Bitmap?
 
-    fun setSprite(bitmap: Bitmap) {
-        sprite = bitmap
-        requestLayout()
-        invalidate()
+    init {
+        normalBitmap = loadBitmap("normal.png")
+        tongueBitmap = loadBitmap("tongue.png")
+
+        imageView.setImageBitmap(normalBitmap)
+        addView(imageView, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT))
     }
 
-    fun triggerTapFeedback() {
-        showTapFeedback = true
-        invalidate()
+    fun playTapReaction() {
+        if (tongueBitmap == null || normalBitmap == null) return
+        imageView.setImageBitmap(tongueBitmap)
         postDelayed({
-            showTapFeedback = false
-            invalidate()
+            imageView.setImageBitmap(normalBitmap)
         }, 500L)
     }
 
-    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val spriteWidth = sprite?.width ?: 160
-        val spriteHeight = sprite?.height ?: 160
-        setMeasuredDimension(spriteWidth, spriteHeight)
-    }
-
-    override fun onDraw(canvas: Canvas) {
-        super.onDraw(canvas)
-        val bitmap = sprite
-        if (bitmap != null) {
-            canvas.drawBitmap(bitmap, 0f, 0f, paint)
-        } else {
-            paint.color = if (showTapFeedback) Color.MAGENTA else Color.CYAN
-            canvas.drawCircle(width / 2f, height / 2f, width.coerceAtMost(height) / 2f, paint)
+    private fun loadBitmap(assetName: String): Bitmap? {
+        return try {
+            context.assets.open(assetName).use { stream ->
+                BitmapFactory.decodeStream(stream)
+            }
+        } catch (error: Exception) {
+            null
         }
     }
 }

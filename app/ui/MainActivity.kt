@@ -12,6 +12,8 @@ import androidx.appcompat.app.AppCompatActivity
 import app.overlay.OverlayService
 
 class MainActivity : AppCompatActivity() {
+    private var isOverlayRunning = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -21,30 +23,37 @@ class MainActivity : AppCompatActivity() {
             setPadding(32, 32, 32, 32)
         }
 
-        val permissionButton = Button(this).apply {
-            text = "授权悬浮窗"
-            setOnClickListener { requestOverlayPermission() }
+        val toggleButton = Button(this).apply {
+            text = "启动桌宠"
+            setOnClickListener { toggleOverlay(this) }
         }
 
-        val showButton = Button(this).apply {
-            text = "显示桌宠"
-            setOnClickListener { OverlayService.start(this@MainActivity) }
-        }
-
-        val hideButton = Button(this).apply {
-            text = "隐藏桌宠"
-            setOnClickListener { OverlayService.stop(this@MainActivity) }
-        }
-
-        layout.addView(permissionButton)
-        layout.addView(showButton)
-        layout.addView(hideButton)
-
+        layout.addView(toggleButton)
         setContentView(layout)
     }
 
+    private fun toggleOverlay(button: Button) {
+        if (!hasOverlayPermission()) {
+            requestOverlayPermission()
+            return
+        }
+
+        isOverlayRunning = !isOverlayRunning
+        if (isOverlayRunning) {
+            OverlayService.start(this)
+            button.text = "停止桌宠"
+        } else {
+            OverlayService.stop(this)
+            button.text = "启动桌宠"
+        }
+    }
+
+    private fun hasOverlayPermission(): Boolean {
+        return Build.VERSION.SDK_INT < Build.VERSION_CODES.M || Settings.canDrawOverlays(this)
+    }
+
     private fun requestOverlayPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             val intent = Intent(
                 Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                 Uri.parse("package:$packageName")

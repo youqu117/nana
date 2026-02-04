@@ -36,7 +36,7 @@ class OverlayWindowManager(private val context: Context) {
 
     private val gestureHandler = GestureHandler(
         onTap = { petController.playTapFeedback() },
-        onDrag = { dx, dy -> updatePosition(dx, dy) },
+        onDrag = { dx, dy -> moveBy(dx, dy) },
         onDragEnd = { snapToEdge() }
     )
 
@@ -56,18 +56,22 @@ class OverlayWindowManager(private val context: Context) {
         isShowing = false
     }
 
-    private fun updatePosition(dx: Int, dy: Int) {
-        layoutParams.x += dx
-        layoutParams.y += dy
+    fun moveTo(x: Int, y: Int) {
+        layoutParams.x = x
+        layoutParams.y = y
         windowManager.updateViewLayout(petView, layoutParams)
     }
 
-    private fun snapToEdge() {
+    fun moveBy(dx: Int, dy: Int) {
+        moveTo(layoutParams.x + dx, layoutParams.y + dy)
+    }
+
+    fun snapToEdge() {
         val screenSize = Point()
         windowManager.defaultDisplay.getSize(screenSize)
         val viewWidth = petView.width
         val maxX = screenSize.x - viewWidth
-        layoutParams.x = if (layoutParams.x < screenSize.x / 2) 0 else maxX
-        windowManager.updateViewLayout(petView, layoutParams)
+        val targetX = if (layoutParams.x < screenSize.x / 2) 0 else maxX
+        moveTo(targetX, layoutParams.y)
     }
 }
