@@ -8,7 +8,7 @@ from pathlib import Path
 import base64
 
 ROOT = Path(__file__).resolve().parents[1]
-ASSETS = ROOT / "assets"
+ASSETS = ROOT / "app" / "src" / "main" / "assets"
 
 for base64_path in ASSETS.rglob("*.png.base64"):
     png_path = base64_path.with_suffix("")
