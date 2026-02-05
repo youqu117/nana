@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate expected asset files listed in assets/annotations.json.
+"""Validate expected asset files listed in app/src/main/assets/annotations.json.
 
 Run:
   python tools/validate_assets.py
@@ -11,11 +11,11 @@ REQUIRED_FIELDS = ("file", "animal", "color", "type", "description")
 ALLOWED_TYPES = {"static", "idle_sheet"}
 
 ROOT = Path(__file__).resolve().parents[1]
-ASSETS = ROOT / "assets"
+ASSETS = ROOT / "app" / "src" / "main" / "assets"
 ANNOTATIONS = ASSETS / "annotations.json"
 
 if not ANNOTATIONS.exists():
-    raise SystemExit("Missing assets/annotations.json")
+    raise SystemExit("Missing app/src/main/assets/annotations.json")
 
 items = json.loads(ANNOTATIONS.read_text())
 missing = []
