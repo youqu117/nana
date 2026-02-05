@@ -6,8 +6,11 @@
 
 ```
 .
-├─ app/                  # Kotlin 源码（悬浮层/输入/宠物渲染）
-├─ res/                  # 资源（当前为矢量占位图）
+├─ app/
+│  └─ src/main/
+│     ├─ java/           # Kotlin 源码（悬浮层/输入/宠物渲染）
+│     ├─ res/            # 资源（当前为矢量占位图）
+│     └─ assets/         # 素材包（base64 占位 + 配置）
 └─ docs/
    ├─ guides/
    │  └─ USAGE.md         # 使用说明（v0.2）
@@ -62,10 +65,10 @@
 
 ## 资源说明
 
-当前占位图为 `res/drawable/normal.xml` 与 `res/drawable/tongue.xml`。
+当前占位图为 `app/src/main/res/drawable/normal.xml` 与 `app/src/main/res/drawable/tongue.xml`。
 如需替换为自定义素材，请保持同名文件并更新为你的资源。
 
-素材包以 base64 文本形式存放在 `assets/`，打包时会自动完成 PNG 生成与校验，
+素材包以 base64 文本形式存放在 `app/src/main/assets/`，打包时会自动完成 PNG 生成与校验，
 无需手动执行命令（已由 `tools/prepare_assets.py` 统一处理）。
 
 ## 文档入口
