@@ -4,9 +4,9 @@
 
 ## 1. 运行前准备
 
-1. 默认资源为 `res/drawable/normal.xml` 与 `res/drawable/tongue.xml`，可替换为同名自定义素材。
+1. 默认资源为 `app/src/main/res/drawable/normal.xml` 与 `app/src/main/res/drawable/tongue.xml`，可替换为同名自定义素材。
 2. 运行 App 后，在系统设置中授予 **悬浮窗权限**。
-3. 如需使用预设素材包，请先执行 `python tools/materialize_assets.py` 生成 PNG。
+3. 预设素材包会在打包时自动生成 PNG，无需手动执行命令。
 
 ## 2. 基本使用流程
 
