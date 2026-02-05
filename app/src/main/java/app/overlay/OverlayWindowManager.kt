@@ -13,18 +13,54 @@ import kotlin.math.min
 import app.input.GestureHandler
 import app.pet.PetController
 import app.pet.PetView
+import app.pet.PetRuntime
+import app.pet.PetBehavior
+import app.pet.PetState
+import app.content.ContentPackManifest
+import app.content.Hitbox
+import app.content.Anchors
+import app.data.PetRepository
+import app.data.PetInstanceEntity
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.collect
 import kotlin.random.Random
 import android.animation.ValueAnimator
 
-class OverlayWindowManager(private val context: Context) {
+class OverlayWindowManager(
+    private val context: Context,
+    private val repository: PetRepository,
+    private val scope: CoroutineScope
+) {
     private val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+    
+    // Dummy Manifest for MVP
+    private val dummyManifest = ContentPackManifest(
+        id = "shiba_default",
+        name = "Shiba",
+        version = 1,
+        preview = "",
+        staticNormal = "pets/dog_shiba/static/pet_normal.png",
+        staticTongue = "pets/dog_shiba/static/pet_tongue.png",
+        idleSheet = "",
+        idleAnim = "",
+        defaultScale = 3,
+        hitbox = Hitbox(0,0,32,30),
+        anchors = Anchors(0,0,0,0,0,0)
+    )
+
     private val petView = PetView(context)
-    private val petController = PetController(petView)
+    private val petRuntime = PetRuntime(dummyManifest)
+    private val petController = PetController(petView, petRuntime)
+    
     private var isShowing = false
-    private var isDragging = false
     private val handler = Handler(Looper.getMainLooper())
-    private var autoMoveRunnable: Runnable? = null
-    private var autoMoveAnimator: ValueAnimator? = null
+    
+    private var moveDirectionX = 1
+    private var moveSpeed = 2
+    
+    private var currentEntity: PetInstanceEntity? = null
+    private var lastSaveTime = 0L
 
     private val layoutParams = WindowManager.LayoutParams(
         WindowManager.LayoutParams.WRAP_CONTENT,
@@ -46,33 +82,123 @@ class OverlayWindowManager(private val context: Context) {
     }
 
     private val gestureHandler = GestureHandler(
-        onTap = { petController.playTapFeedback() },
-        onDragStart = { pauseAutoMove() },
-        onDrag = { dx, dy -> moveBy(dx, dy) },
+        onTap = { petController.onTap() },
+        onDoubleTap = { petController.onDoubleTap() },
+        onLongPress = { petController.onLongPress() },
+        onDragStart = { 
+            petController.onLongPress() // Treat drag start as held
+        },
+        onDrag = { dx, dy -> 
+            moveBy(dx, dy) 
+        },
         onDragEnd = {
+            petController.onRelease()
             snapToEdge()
-            resumeAutoMove()
         }
     )
 
     init {
         petView.setOnTouchListener(gestureHandler)
+        
+        scope.launch {
+            repository.enabledInstances.collect { instances ->
+                if (instances.isNotEmpty()) {
+                    val newEntity = instances.first()
+                    // If switching pets or first load, restore state
+                    if (currentEntity?.instanceId != newEntity.instanceId) {
+                         val loadedState = PetState(
+                            energy = newEntity.energy,
+                            mood = newEntity.mood,
+                            affection = newEntity.affection,
+                            lastTickMs = System.currentTimeMillis()
+                        )
+                        petRuntime.restoreState(loadedState)
+                    }
+                    currentEntity = newEntity
+                }
+            }
+        }
     }
 
     fun show() {
         if (isShowing) return
         windowManager.addView(petView, layoutParams)
         isShowing = true
-        petView.post { startAutoMove() }
+        startLoop()
     }
 
     fun hide() {
         if (!isShowing) return
-        stopAutoMove()
+        saveState()
+        stopLoop()
         if (petView.parent != null) {
             windowManager.removeView(petView)
         }
         isShowing = false
+    }
+    
+    private fun saveState() {
+        val entity = currentEntity ?: return
+        val s = petRuntime.state
+        val updated = entity.copy(
+            energy = s.energy,
+            mood = s.mood,
+            affection = s.affection
+        )
+        scope.launch {
+            repository.updateInstance(updated)
+        }
+    }
+
+    private val loopRunnable = object : Runnable {
+        override fun run() {
+            if (!isShowing) return
+
+            petController.update()
+            
+            // Save state periodically (every 30s)
+            val now = System.currentTimeMillis()
+            if (now - lastSaveTime > 30000) {
+                lastSaveTime = now
+                saveState()
+            }
+            
+            // Handle Movement based on Behavior
+            val state = petRuntime.state
+            if (state.behavior == PetBehavior.WALK) {
+                // Bounce off edges
+                val screenSize = getScreenSize()
+                val nextX = layoutParams.x + (moveDirectionX * moveSpeed)
+                
+                if (nextX <= EDGE_PADDING_PX || nextX + petView.width >= screenSize.x - EDGE_PADDING_PX) {
+                    moveDirectionX *= -1
+                    // Flip view?
+                    // petView.scaleX = moveDirectionX.toFloat() 
+                }
+                
+                moveBy(moveDirectionX * moveSpeed, 0)
+            } else if (state.behavior == PetBehavior.RUN) {
+                 // Faster movement
+                 val screenSize = getScreenSize()
+                 val speed = moveSpeed * 3
+                 val nextX = layoutParams.x + (moveDirectionX * speed)
+                 
+                 if (nextX <= EDGE_PADDING_PX || nextX + petView.width >= screenSize.x - EDGE_PADDING_PX) {
+                     moveDirectionX *= -1
+                 }
+                 moveBy(moveDirectionX * speed, 0)
+            }
+
+            handler.postDelayed(this, 33) // ~30 FPS
+        }
+    }
+
+    private fun startLoop() {
+        handler.post(loopRunnable)
+    }
+
+    private fun stopLoop() {
+        handler.removeCallbacks(loopRunnable)
     }
 
     fun moveTo(x: Int, y: Int) {
@@ -82,6 +208,7 @@ class OverlayWindowManager(private val context: Context) {
         layoutParams.y = clamped.second
         windowManager.updateViewLayout(petView, layoutParams)
     }
+
 
     fun moveBy(dx: Int, dy: Int) {
         moveTo(layoutParams.x + dx, layoutParams.y + dy)

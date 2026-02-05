@@ -1,64 +1,176 @@
 package app.data
 
 import android.content.Context
-import org.json.JSONObject
-import java.io.File
+import androidx.room.*
+import kotlinx.coroutines.flow.Flow
 
-class LocalStore(private val context: Context) {
-    fun loadState(): PetSaveState? {
-        val file = saveFile()
-        if (!file.exists()) return null
-        val json = JSONObject(file.readText())
-        if (json.optInt(KEY_VERSION) != CURRENT_VERSION) return null
-        return PetSaveState(
-            energy = json.optInt(KEY_ENERGY, DEFAULT_ENERGY),
-            mood = json.optInt(KEY_MOOD, DEFAULT_MOOD),
-            affection = json.optInt(KEY_AFFECTION, DEFAULT_AFFECTION),
-            adoptedAt = json.optLong(KEY_ADOPTED_AT, 0L),
-            posX = json.optInt(KEY_POS_X, 0),
-            posY = json.optInt(KEY_POS_Y, 0),
-            skinId = json.optString(KEY_SKIN_ID, "")
-        )
-    }
+// --- Entities ---
 
-    fun saveState(state: PetSaveState) {
-        val json = JSONObject()
-            .put(KEY_VERSION, CURRENT_VERSION)
-            .put(KEY_ENERGY, state.energy)
-            .put(KEY_MOOD, state.mood)
-            .put(KEY_AFFECTION, state.affection)
-            .put(KEY_ADOPTED_AT, state.adoptedAt)
-            .put(KEY_POS_X, state.posX)
-            .put(KEY_POS_Y, state.posY)
-            .put(KEY_SKIN_ID, state.skinId)
-        saveFile().writeText(json.toString())
-    }
+@Entity(tableName = "pet_assets")
+data class PetAssetEntity(
+    @PrimaryKey val id: String,
+    val name: String,
+    val previewPath: String, // Path to preview image in assets
+    val defaultScale: Int,
+    val width: Int,
+    val height: Int
+)
 
-    private fun saveFile(): File = File(context.filesDir, FILE_NAME)
+@Entity(tableName = "pet_instances")
+data class PetInstanceEntity(
+    @PrimaryKey(autoGenerate = true) val instanceId: Long = 0,
+    val assetId: String,
+    val name: String,
+    val scale: Float = 1.0f,
+    val alpha: Float = 1.0f,
+    val isEnabled: Boolean = true,
+    val x: Int = 0,
+    val y: Int = 0,
+    val zOrder: Int = 0,
+    // New MVP Stats
+    val adoptionTime: Long = System.currentTimeMillis(),
+    val energy: Int = 80,
+    val mood: Int = 0,
+    val affection: Int = 0
+)
+
+@Entity(tableName = "global_settings")
+data class GlobalSettingEntity(
+    @PrimaryKey val key: String,
+    val value: String
+)
+
+// --- DAOs ---
+
+@Dao
+interface PetDao {
+    // Assets
+    @Query("SELECT * FROM pet_assets")
+    fun getAllAssets(): Flow<List<PetAssetEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAsset(asset: PetAssetEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAllAssets(assets: List<PetAssetEntity>)
+
+    @Query("DELETE FROM pet_assets")
+    suspend fun clearAssets()
+
+    // Instances
+    @Query("SELECT * FROM pet_instances")
+    fun getAllInstances(): Flow<List<PetInstanceEntity>>
+
+    @Query("SELECT * FROM pet_instances WHERE isEnabled = 1")
+    fun getEnabledInstances(): Flow<List<PetInstanceEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertInstance(instance: PetInstanceEntity): Long
+
+    @Update
+    suspend fun updateInstance(instance: PetInstanceEntity)
+
+    @Delete
+    suspend fun deleteInstance(instance: PetInstanceEntity)
+
+    @Query("SELECT * FROM pet_instances WHERE instanceId = :id")
+    suspend fun getInstanceById(id: Long): PetInstanceEntity?
+}
+
+@Dao
+interface SettingsDao {
+    @Query("SELECT * FROM global_settings")
+    fun getAllSettings(): Flow<List<GlobalSettingEntity>>
+
+    @Query("SELECT value FROM global_settings WHERE `key` = :key")
+    fun getSetting(key: String): Flow<String?>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun setSetting(setting: GlobalSettingEntity)
+}
+
+// --- Database ---
+
+@Database(entities = [PetAssetEntity::class, PetInstanceEntity::class, GlobalSettingEntity::class], version = 1, exportSchema = false)
+abstract class AppDatabase : RoomDatabase() {
+    abstract fun petDao(): PetDao
+    abstract fun settingsDao(): SettingsDao
 
     companion object {
-        private const val FILE_NAME = "pet_state.json"
-        private const val CURRENT_VERSION = 1
-        private const val DEFAULT_ENERGY = 80
-        private const val DEFAULT_MOOD = 0
-        private const val DEFAULT_AFFECTION = 0
-        private const val KEY_VERSION = "version"
-        private const val KEY_ENERGY = "energy"
-        private const val KEY_MOOD = "mood"
-        private const val KEY_AFFECTION = "affection"
-        private const val KEY_ADOPTED_AT = "adoptedAt"
-        private const val KEY_POS_X = "posX"
-        private const val KEY_POS_Y = "posY"
-        private const val KEY_SKIN_ID = "skinId"
+        @Volatile
+        private var INSTANCE: AppDatabase? = null
+
+        fun getDatabase(context: Context): AppDatabase {
+            return INSTANCE ?: synchronized(this) {
+                val instance = Room.databaseBuilder(
+                    context.applicationContext,
+                    AppDatabase::class.java,
+                    "pixel_pet_database"
+                ).build()
+                INSTANCE = instance
+                instance
+            }
+        }
     }
 }
 
-data class PetSaveState(
-    val energy: Int,
-    val mood: Int,
-    val affection: Int,
-    val adoptedAt: Long,
-    val posX: Int,
-    val posY: Int,
-    val skinId: String
-)
+// --- Repository ---
+
+class PetRepository(private val petDao: PetDao, private val settingsDao: SettingsDao) {
+
+    // Pet Assets
+    val allAssets: Flow<List<PetAssetEntity>> = petDao.getAllAssets()
+
+    suspend fun insertAsset(asset: PetAssetEntity) {
+        petDao.insertAsset(asset)
+    }
+
+    suspend fun insertAllAssets(assets: List<PetAssetEntity>) {
+        petDao.insertAllAssets(assets)
+    }
+
+    suspend fun clearAssets() {
+        petDao.clearAssets()
+    }
+
+    // Pet Instances
+    val allInstances: Flow<List<PetInstanceEntity>> = petDao.getAllInstances()
+    val enabledInstances: Flow<List<PetInstanceEntity>> = petDao.getEnabledInstances()
+
+    suspend fun addInstance(assetId: String, name: String): Long {
+        val instance = PetInstanceEntity(
+            assetId = assetId,
+            name = name,
+            x = 100, // Default position
+            y = 200
+        )
+        return petDao.insertInstance(instance)
+    }
+
+    suspend fun updateInstance(instance: PetInstanceEntity) {
+        petDao.updateInstance(instance)
+    }
+
+    suspend fun deleteInstance(instance: PetInstanceEntity) {
+        petDao.deleteInstance(instance)
+    }
+
+    suspend fun toggleInstance(instance: PetInstanceEntity) {
+        petDao.updateInstance(instance.copy(isEnabled = !instance.isEnabled))
+    }
+
+    suspend fun getInstanceById(id: Long): PetInstanceEntity? {
+        return petDao.getInstanceById(id)
+    }
+
+    // Global Settings
+    val allSettings: Flow<List<GlobalSettingEntity>> = settingsDao.getAllSettings()
+
+    fun getSetting(key: String): Flow<String?> {
+        return settingsDao.getSetting(key)
+    }
+
+    suspend fun setSetting(key: String, value: String) {
+        settingsDao.setSetting(GlobalSettingEntity(key, value))
+    }
+}

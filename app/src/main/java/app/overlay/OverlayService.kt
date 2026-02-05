@@ -8,19 +8,36 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.IBinder
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import app.data.AppDatabase
+import app.data.PetRepository
 
 class OverlayService : Service() {
     private lateinit var overlayWindowManager: OverlayWindowManager
+    private val scope = CoroutineScope(Dispatchers.Main)
 
     override fun onCreate() {
         super.onCreate()
+        isServiceRunning = true
         startForeground(NOTIFICATION_ID, buildNotification())
-        overlayWindowManager = OverlayWindowManager(this)
+        
+        val db = AppDatabase.getDatabase(this)
+        val repo = PetRepository(db.petDao(), db.settingsDao())
+        
+        overlayWindowManager = OverlayWindowManager(this, repo, scope)
+        
+        // Load enabled pets
+        // For now, we just show the window manager which defaults to a pet
+        // In future, we pass the instance data to the manager
         overlayWindowManager.show()
     }
 
     override fun onDestroy() {
+        isServiceRunning = false
         overlayWindowManager.hide()
+        scope.cancel()
         super.onDestroy()
     }
 
@@ -59,6 +76,9 @@ class OverlayService : Service() {
         private const val NOTIFICATION_ID = 1001
         private const val NOTIFICATION_TITLE = "桌宠正在运行"
         private const val NOTIFICATION_TEXT = "点击返回应用进行设置"
+
+        var isServiceRunning = false
+
 
         fun start(context: Context) {
             val intent = Intent(context, OverlayService::class.java)
