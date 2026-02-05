@@ -23,13 +23,6 @@ android {
     }
 }
 
-androidComponents {
-    onVariants(selector().all()) { variant ->
-        variant.outputs.forEach { output ->
-            output.outputFileName = "pixelpet-${variant.buildType}.apk"
-        }
-    }
-}
 
 dependencies {
     implementation "androidx.core:core-ktx:1.12.0"
