@@ -8,6 +8,7 @@ import android.os.Build
 import android.view.Gravity
 import android.view.WindowManager
 import android.graphics.Rect
+import android.view.View
 import app.data.PetInstanceEntity
 import app.data.PetRepository
 import app.input.GestureHandler
@@ -19,7 +20,6 @@ import app.pet.PetView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlin.math.max
-
 import app.content.AssetLoader
 
 class OverlayWindowManager(
@@ -28,10 +28,78 @@ class OverlayWindowManager(
     private val scope: CoroutineScope
 ) {
     private val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+    private val activePets = mutableMapOf<Long, OverlayPetUnit>()
     
+    private var currentScale = 1.5f
+    private var currentAlpha = 1.0f
+
+    init {
+        scope.launch {
+            // Observe Settings
+            launch {
+                repository.getSetting("scale").collect { scaleStr ->
+                    currentScale = scaleStr?.toFloatOrNull() ?: 1.5f
+                    activePets.values.forEach { it.updateScale(currentScale) }
+                }
+            }
+            
+            launch {
+                repository.getSetting("alpha").collect { alphaStr ->
+                    currentAlpha = alphaStr?.toFloatOrNull() ?: 1.0f
+                    activePets.values.forEach { it.updateAlpha(currentAlpha) }
+                }
+            }
+
+            // Observe Enabled Pets
+            repository.enabledInstances.collect { instances ->
+                syncPets(instances)
+            }
+        }
+    }
+
+    private fun syncPets(instances: List<PetInstanceEntity>) {
+        val activeIds = instances.map { it.instanceId }.toSet()
+        
+        // 1. Remove pets that are no longer enabled
+        val toRemove = activePets.keys.filter { !activeIds.contains(it) }
+        toRemove.forEach { id ->
+            activePets[id]?.destroy()
+            activePets.remove(id)
+        }
+        
+        // 2. Add new pets or update existing ones
+        instances.forEach { instance ->
+            val existing = activePets[instance.instanceId]
+            if (existing != null) {
+                existing.updateEntity(instance)
+            } else {
+                val unit = OverlayPetUnit(context, windowManager, scope, instance, repository)
+                unit.updateScale(currentScale)
+                unit.updateAlpha(currentAlpha)
+                unit.show()
+                activePets[instance.instanceId] = unit
+            }
+        }
+    }
+
+    fun show() {
+        // Logic handled by syncPets observing the repository
+    }
+
+    fun hide() {
+        activePets.values.forEach { it.destroy() }
+        activePets.clear()
+    }
+}
+
+private class OverlayPetUnit(
+    private val context: Context,
+    private val windowManager: WindowManager,
+    private val scope: CoroutineScope,
+    private var currentEntity: PetInstanceEntity,
+    private val repository: PetRepository
+) {
     private val petView = PetView(context)
-    
-    // Runtime & Controller (Mutable to support switching pets)
     private var petRuntime: PetRuntime? = null
     private var petController: PetController? = null
     
@@ -39,11 +107,7 @@ class OverlayWindowManager(
     private val handler = Handler(Looper.getMainLooper())
     
     private var moveDirectionX = 1
-    private var moveSpeed = 2
     
-    private var currentEntity: PetInstanceEntity? = null
-    private var lastSaveTime = 0L
-
     private val layoutParams = WindowManager.LayoutParams(
         WindowManager.LayoutParams.WRAP_CONTENT,
         WindowManager.LayoutParams.WRAP_CONTENT,
@@ -59,20 +123,16 @@ class OverlayWindowManager(
         android.graphics.PixelFormat.TRANSLUCENT
     ).apply {
         gravity = Gravity.TOP or Gravity.START
-        x = 0
-        y = 200
+        x = 100 // Default random pos could be better
+        y = 300
     }
 
     private val gestureHandler = GestureHandler(
         onTap = { petController?.onTap() },
         onDoubleTap = { petController?.onDoubleTap() },
         onLongPress = { petController?.onLongPress() },
-        onDragStart = { 
-            petController?.onLongPress() // Treat drag start as held
-        },
-        onDrag = { dx, dy -> 
-            moveBy(dx, dy) 
-        },
+        onDragStart = { petController?.onLongPress() },
+        onDrag = { dx, dy -> moveBy(dx, dy) },
         onDragEnd = {
             petController?.onRelease()
             snapToEdge()
@@ -81,70 +141,50 @@ class OverlayWindowManager(
 
     init {
         petView.setOnTouchListener(gestureHandler)
-        
-        scope.launch {
-            // Observe Global Settings
-            launch {
-                repository.getSetting("scale").collect { scaleStr ->
-                    val scale = scaleStr?.toFloatOrNull() ?: 1.5f
-                    petView.scaleX = scale
-                    petView.scaleY = scale
-                }
-            }
-            
-            launch {
-                repository.getSetting("alpha").collect { alphaStr ->
-                    val alpha = alphaStr?.toFloatOrNull() ?: 1.0f
-                    layoutParams.alpha = alpha.coerceIn(0.1f, 1.0f)
-                    if (isShowing && petView.parent != null) {
-                        windowManager.updateViewLayout(petView, layoutParams)
-                    }
-                }
-            }
+        loadResources()
+    }
 
-            repository.enabledInstances.collect { instances ->
-                if (instances.isNotEmpty()) {
-                    val newEntity = instances.first()
+    fun updateScale(scale: Float) {
+        petView.setDisplayScale(scale)
+        petView.setFacingDirection(moveDirectionX)
+    }
+
+    fun updateAlpha(alpha: Float) {
+        layoutParams.alpha = alpha.coerceIn(0.1f, 1.0f)
+        if (isShowing && petView.parent != null) {
+            windowManager.updateViewLayout(petView, layoutParams)
+        }
+    }
+
+    fun updateEntity(newInstance: PetInstanceEntity) {
+        if (currentEntity.assetId != newInstance.assetId) {
+            currentEntity = newInstance
+            loadResources()
+        } else {
+            // Sync state logic if needed (e.g. forced mood change)
+            currentEntity = newInstance
+        }
+    }
+
+    private fun loadResources() {
+        scope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            val manifest = AssetLoader.loadManifest(context, currentEntity.assetId)
+            if (manifest != null) {
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                    petView.loadAssets(manifest)
+                    val rt = PetRuntime(manifest)
+                    petRuntime = rt
+                    petController = PetController(petView, rt)
                     
-                    // 1. Load Assets / Runtime if asset changed
-                    if (currentEntity?.assetId != newEntity.assetId || petRuntime == null) {
-                        // Move heavy I/O to IO dispatcher to avoid ANR
-                        launch(kotlinx.coroutines.Dispatchers.IO) {
-                            val manifest = AssetLoader.loadManifest(context, newEntity.assetId)
-                            if (manifest != null) {
-                                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
-                                    petView.loadAssets(manifest)
-                                    val rt = PetRuntime(manifest)
-                                    petRuntime = rt
-                                    petController = PetController(petView, rt)
-                                    
-                                    // 2. Restore State if instance changed (nested to ensure runtime is ready)
-                                    if (currentEntity?.instanceId != newEntity.instanceId) {
-                                         val loadedState = PetState(
-                                            energy = newEntity.energy,
-                                            mood = newEntity.mood,
-                                            affection = newEntity.affection,
-                                            lastTickMs = newEntity.lastTickTime
-                                        )
-                                        val caughtUpState = loadedState.tick(System.currentTimeMillis())
-                                        petRuntime?.restoreState(caughtUpState)
-                                    }
-                                    currentEntity = newEntity
-                                }
-                            }
-                        }
-                    } else if (currentEntity?.instanceId != newEntity.instanceId) {
-                         // Only state restore if asset is same
-                         val loadedState = PetState(
-                            energy = newEntity.energy,
-                            mood = newEntity.mood,
-                            affection = newEntity.affection,
-                            lastTickMs = newEntity.lastTickTime
-                        )
-                        val caughtUpState = loadedState.tick(System.currentTimeMillis())
-                        petRuntime?.restoreState(caughtUpState)
-                        currentEntity = newEntity
-                    }
+                    // Restore State
+                    val loadedState = PetState(
+                        energy = currentEntity.energy,
+                        mood = currentEntity.mood,
+                        affection = currentEntity.affection,
+                        lastTickMs = currentEntity.lastTickTime
+                    )
+                    val caughtUpState = loadedState.tick(System.currentTimeMillis())
+                    petRuntime?.restoreState(caughtUpState)
                 }
             }
         }
@@ -152,12 +192,17 @@ class OverlayWindowManager(
 
     fun show() {
         if (isShowing) return
+        // Randomize initial position
+        val screenSize = getScreenSize()
+        layoutParams.x = kotlin.random.Random.nextInt(EDGE_PADDING_PX, screenSize.x - 200)
+        layoutParams.y = kotlin.random.Random.nextInt(200, screenSize.y - 200)
+        
         windowManager.addView(petView, layoutParams)
         isShowing = true
         startLoop()
     }
 
-    fun hide() {
+    fun destroy() {
         if (!isShowing) return
         saveState()
         stopLoop()
@@ -166,11 +211,10 @@ class OverlayWindowManager(
         }
         isShowing = false
     }
-    
+
     private fun saveState() {
-        val entity = currentEntity ?: return
         val s = petRuntime?.state ?: return
-        val updated = entity.copy(
+        val updated = currentEntity.copy(
             energy = s.energy,
             mood = s.mood,
             affection = s.affection,
@@ -181,6 +225,15 @@ class OverlayWindowManager(
         }
     }
 
+    // --- Loop & Movement ---
+
+    private var targetX = 0
+    private var startX = 0
+    private var moveStartTime = 0L
+    private var moveDuration = 0L
+    private var isMovingToTarget = false
+    private var lastSaveTime = 0L
+
     private fun startLoop() {
         handler.post(loopRunnable)
     }
@@ -189,51 +242,35 @@ class OverlayWindowManager(
         handler.removeCallbacks(loopRunnable)
     }
 
-    // --- Movement Logic ---
-    
-    // Smooth easing function: ease-in-out cubic
     private fun easeInOutCubic(t: Float): Float {
         return if (t < 0.5f) 4 * t * t * t else 1 - Math.pow((-2 * t + 2).toDouble(), 3.0).toFloat() / 2
     }
-
-    private var targetX = 0
-    private var startX = 0
-    private var moveStartTime = 0L
-    private var moveDuration = 0L
-    private var isMovingToTarget = false
 
     private fun pickNewTarget() {
         val screenSize = getScreenSize()
         val viewWidth = petView.width
         if (viewWidth == 0) return
         
-        // Target Sampling: Edge band (0~120px from edges)
-        val edgeBand = 120
-        val isLeft = kotlin.random.Random.nextBoolean()
+        // Random target across screen
+        val maxW = screenSize.x - viewWidth - EDGE_PADDING_PX
+        val destX = kotlin.random.Random.nextInt(EDGE_PADDING_PX, max(EDGE_PADDING_PX + 1, maxW))
         
-        val randomOffset = kotlin.random.Random.nextInt(0, edgeBand)
-        val destX = if (isLeft) {
-            EDGE_PADDING_PX + randomOffset
-        } else {
-            screenSize.x - viewWidth - EDGE_PADDING_PX - randomOffset
-        }
-        
-        targetX = destX.coerceIn(EDGE_PADDING_PX, screenSize.x - viewWidth - EDGE_PADDING_PX)
+        targetX = destX
         startX = layoutParams.x
         moveStartTime = System.currentTimeMillis()
         
-        // Duration based on distance (speed = ~300px/s)
         val distance = kotlin.math.abs(targetX - startX)
-        moveDuration = (distance * 3).toLong().coerceAtLeast(1000L) // Min 1s
+        moveDuration = (distance * 4).toLong().coerceAtLeast(1500L) // Slower movement
         isMovingToTarget = true
         
         // Face direction
+        val scale = kotlin.math.abs(petView.scaleY)
         if (targetX > startX) {
             moveDirectionX = 1
-            petView.scaleX = -petView.scaleY // Flip (assuming sprite faces left by default)
+            petView.setFacingDirection(1)
         } else {
             moveDirectionX = -1
-            petView.scaleX = petView.scaleY
+            petView.setFacingDirection(-1)
         }
     }
 
@@ -243,47 +280,37 @@ class OverlayWindowManager(
 
             petController?.update()
             
-            // Save state periodically (every 30s)
+            // Auto Save
             val now = System.currentTimeMillis()
             if (now - lastSaveTime > 30000) {
                 lastSaveTime = now
                 saveState()
             }
             
-            // Handle Movement based on Behavior
             val state = petRuntime?.state ?: run {
                 handler.postDelayed(this, 33)
                 return
             }
             
-            // Frame Rate Throttling
-            val delay = if (state.behavior == PetBehavior.IDLE || state.behavior == PetBehavior.SLEEP) {
-                83L // ~12 FPS for Idle/Sleep
-            } else {
-                33L // ~30 FPS for Active
-            }
+            val delay = if (state.behavior == PetBehavior.IDLE || state.behavior == PetBehavior.SLEEP) 83L else 33L
             
             if (state.behavior == PetBehavior.WALK || state.behavior == PetBehavior.RUN) {
-                if (!isMovingToTarget) {
-                     pickNewTarget()
-                }
+                if (!isMovingToTarget) pickNewTarget()
                 
-                val elapsedMove = now - moveStartTime
-                if (elapsedMove < moveDuration) {
-                    val progress = elapsedMove.toFloat() / moveDuration
-                    val easedProgress = easeInOutCubic(progress)
-                    val currentX = startX + (targetX - startX) * easedProgress
-                    moveTo(currentX.toInt(), layoutParams.y)
+                val elapsed = now - moveStartTime
+                if (elapsed < moveDuration) {
+                    val progress = elapsed.toFloat() / moveDuration
+                    val eased = easeInOutCubic(progress)
+                    val cx = startX + (targetX - startX) * eased
+                    moveTo(cx.toInt(), layoutParams.y)
                 } else {
-                    // Reached target
                     isMovingToTarget = false
-                    // Optional: pause or switch to idle handled by Runtime
                 }
             } else {
-                isMovingToTarget = false // Reset if behavior changes
+                isMovingToTarget = false
             }
 
-            handler.postDelayed(this, delay) 
+            handler.postDelayed(this, delay)
         }
     }
 
@@ -295,37 +322,25 @@ class OverlayWindowManager(
         windowManager.updateViewLayout(petView, layoutParams)
     }
 
-
     fun moveBy(dx: Int, dy: Int) {
         moveTo(layoutParams.x + dx, layoutParams.y + dy)
     }
 
     fun snapToEdge() {
-        val screenSize = getScreenSize()
-        val viewWidth = petView.width
-        if (viewWidth == 0) return
-        val maxX = max(EDGE_PADDING_PX, screenSize.x - viewWidth - EDGE_PADDING_PX)
-        val targetX = if (layoutParams.x < screenSize.x / 2) {
-            EDGE_PADDING_PX
-        } else {
-            maxX
-        }
-        moveTo(targetX, layoutParams.y)
+        // Optional: Desktop pets usually stay on floor, snapping to side might be annoying
+        // but let's keep it if user drags close to edge? 
+        // For now, let's DISABLE automatic snap to edge to allow free placement
     }
 
     private fun clampToScreen(x: Int, y: Int): Pair<Int, Int> {
         val screenSize = getScreenSize()
         val viewWidth = petView.width
         val viewHeight = petView.height
-        if (viewWidth == 0 || viewHeight == 0) {
-            return Pair(x, y)
-        }
+        if (viewWidth == 0) return Pair(x, y)
+        
         val maxX = max(EDGE_PADDING_PX, screenSize.x - viewWidth - EDGE_PADDING_PX)
         val maxY = max(EDGE_PADDING_PX, screenSize.y - viewHeight - EDGE_PADDING_PX)
-        return Pair(
-            x.coerceIn(EDGE_PADDING_PX, maxX),
-            y.coerceIn(EDGE_PADDING_PX, maxY)
-        )
+        return Pair(x.coerceIn(EDGE_PADDING_PX, maxX), y.coerceIn(EDGE_PADDING_PX, maxY))
     }
 
     private fun getScreenSize(): Point {
@@ -339,7 +354,6 @@ class OverlayWindowManager(
     }
 
     companion object {
-        private const val EDGE_PADDING_PX = 12
+        private const val EDGE_PADDING_PX = 10
     }
 }
-

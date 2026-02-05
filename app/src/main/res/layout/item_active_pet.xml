@@ -2,26 +2,26 @@
 <androidx.cardview.widget.CardView 
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="200dp"
+    android:layout_width="280dp"
     android:layout_height="wrap_content"
     android:layout_marginEnd="16dp"
     android:layout_marginBottom="8dp"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="2dp"
-    app:cardBackgroundColor="#E1F5FE">
+    app:cardCornerRadius="20dp"
+    app:cardElevation="0dp"
+    app:cardBackgroundColor="@color/ui_bg_card">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="20dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginBottom="8dp">
+            android:layout_marginBottom="16dp">
             
             <TextView
                 android:id="@+id/textName"
@@ -30,33 +30,144 @@
                 android:layout_weight="1"
                 android:text="Name"
                 android:textStyle="bold"
-                android:textSize="16sp"
-                android:textColor="#0277BD"/>
-
+                android:textSize="18sp"
+                android:textColor="@color/ui_text_title"/>
+            
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="LV.5"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="@color/ui_sky_dark"
+                android:background="@drawable/bg_level_badge"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp"
+                android:layout_marginEnd="8dp"/>
+                
             <ImageView
                 android:id="@+id/btnDelete"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
                 android:src="@android:drawable/ic_menu_delete"
-                app:tint="#FF5252"/>
+                app:tint="@color/ui_text_mute"
+                android:alpha="0.5"/>
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/textStatus"
-            android:layout_width="wrap_content"
+        <!-- Stats Bars -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Mood: Happy"
-            android:textSize="12sp"
-            android:textColor="#0288D1"
-            android:layout_marginBottom="12dp"/>
+            android:orientation="vertical"
+            android:layout_marginBottom="20dp">
 
+            <!-- Energy -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="10dp">
+                <ImageView 
+                    android:layout_width="16dp" 
+                    android:layout_height="16dp" 
+                    android:src="@android:drawable/ic_lock_idle_charging"
+                    app:tint="@color/ui_text_mute"/>
+                <TextView
+                    android:layout_width="60dp"
+                    android:layout_height="wrap_content"
+                    android:text="Energy"
+                    android:textSize="12sp"
+                    android:textColor="@color/ui_text_mute"
+                    android:layout_marginStart="8dp"/>
+                <ProgressBar
+                    android:id="@+id/progressEnergy"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="0dp"
+                    android:layout_height="8dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:progressDrawable="@drawable/progress_energy"
+                    android:progress="70"
+                    android:max="100"/>
+            </LinearLayout>
+
+            <!-- Mood -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="10dp">
+                <ImageView 
+                    android:layout_width="16dp" 
+                    android:layout_height="16dp" 
+                    android:src="@android:drawable/btn_star_big_on"
+                    app:tint="@color/ui_text_mute"/>
+                <TextView
+                    android:layout_width="60dp"
+                    android:layout_height="wrap_content"
+                    android:text="Mood"
+                    android:textSize="12sp"
+                    android:textColor="@color/ui_text_mute"
+                    android:layout_marginStart="8dp"/>
+                <ProgressBar
+                    android:id="@+id/progressMood"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="0dp"
+                    android:layout_height="8dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:progressDrawable="@drawable/progress_mood"
+                    android:progress="50"
+                    android:max="100"/>
+            </LinearLayout>
+
+            <!-- Hunger -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+                <ImageView 
+                    android:layout_width="16dp" 
+                    android:layout_height="16dp" 
+                    android:src="@android:drawable/ic_menu_my_calendar"
+                    app:tint="@color/ui_text_mute"/>
+                <TextView
+                    android:layout_width="60dp"
+                    android:layout_height="wrap_content"
+                    android:text="Hunger"
+                    android:textSize="12sp"
+                    android:textColor="@color/ui_text_mute"
+                    android:layout_marginStart="8dp"/>
+                <ProgressBar
+                    android:id="@+id/progressHunger"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="0dp"
+                    android:layout_height="8dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:progressDrawable="@drawable/progress_hunger"
+                    android:progress="30"
+                    android:max="100"/>
+            </LinearLayout>
+        </LinearLayout>
+        
+        <!-- Action Button -->
         <Button
             android:id="@+id/btnToggle"
             android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:text="Hide"
-            android:textSize="12sp"
-            android:backgroundTint="#4FC3F7"/>
+            android:layout_height="50dp"
+            android:text="交 互"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:textColor="@android:color/white"
+            android:background="@drawable/bg_btn_primary"
+            app:backgroundTint="@null"
+            android:elevation="4dp"/>
 
     </LinearLayout>
 

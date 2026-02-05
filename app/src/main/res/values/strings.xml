@@ -1,4 +1,32 @@
 <resources>
     <string name="app_name">Nana Pet</string>
     <string name="title_activity_main">Nana Pet Console</string>
+    
+    <!-- UI Labels -->
+    <string name="label_desktop_overlay">Desktop Overlay</string>
+    <string name="status_running">Status: Running</string>
+    <string name="status_stopped">Status: Stopped</string>
+    <string name="action_start">START</string>
+    <string name="action_stop">STOP</string>
+    
+    <string name="label_global_settings">Global Settings</string>
+    <string name="action_configure">CONFIGURE</string>
+    
+    <string name="label_my_pets">My Pets</string>
+    <string name="label_adopt">Adopt a Friend</string>
+    
+    <string name="msg_rescanning">Rescanning assets...</string>
+    <string name="msg_grant_permission">Please grant Overlay permission first</string>
+    <string name="msg_stopping_service">Stopping service...</string>
+    <string name="msg_starting_service">Starting service...</string>
+    <string name="msg_adopted">Adopted %1$s!</string>
+    <string name="notification_title">Desktop Pet Running</string>
+    <string name="notification_text">Tap to configure</string>
+    <string name="notification_action_exit">Exit</string>
+    <string name="notification_channel_name">Desktop Pet Service</string>
+    <string name="dialog_settings_title">Global Settings</string>
+    <string name="label_scale">Scale: %.1fx</string>
+    <string name="label_opacity">Opacity: %d%%</string>
+    <string name="action_save">Save</string>
+    <string name="action_cancel">Cancel</string>
 </resources>

@@ -1,15 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Base Colors -->
     <color name="colorPrimary">#FFAB91</color>
     <color name="colorPrimaryDark">#E64A19</color>
     <color name="colorAccent">#FFCCBC</color>
     
-    <color name="bg_cream">#FFF8E1</color>
+    <!-- React UI Colors -->
+    <color name="ui_bg_page">#FFF8E7</color>
+    <color name="ui_bg_card">#FFFFFF</color>
+    <color name="ui_bg_accent">#FFF1CC</color>
+    
+    <color name="ui_text_title">#78350F</color> <!-- amber-900 -->
+    <color name="ui_text_subtitle">#B45309</color> <!-- amber-700/60ish -->
+    <color name="ui_text_main">#334155</color> <!-- slate-700 -->
+    <color name="ui_text_mute">#94A3B8</color> <!-- slate-400 -->
+    
+    <!-- Switch / Status -->
+    <color name="ui_green">#22C55E</color> <!-- green-500 -->
+    <color name="ui_green_light">#DCFCE7</color> <!-- green-100 -->
+    <color name="ui_gray_light">#F1F5F9</color> <!-- slate-100 -->
+    <color name="ui_amber">#FBBF24</color> <!-- amber-400 -->
+    <color name="ui_amber_light">#FEF3C7</color> <!-- amber-100 -->
+    <color name="ui_rose">#FB7185</color> <!-- rose-400 -->
+    <color name="ui_rose_light">#FFE4E6</color> <!-- rose-100 -->
+    <color name="ui_sky">#38BDF8</color> <!-- sky-400 -->
+    <color name="ui_sky_dark">#0EA5E9</color> <!-- sky-500 -->
+    
+    <!-- Legacy Support (keeping for compatibility during refactor) -->
+    <color name="bg_cream">#FFF8E7</color>
     <color name="bg_card">#FFFFFF</color>
-    
-    <color name="text_primary">#5D4037</color>
-    <color name="text_secondary">#8D6E63</color>
-    
-    <color name="status_green">#4CAF50</color>
-    <color name="status_red">#E64A19</color>
+    <color name="bg_accent_card">#FFFFFF</color>
+    <color name="text_primary">#334155</color>
+    <color name="text_secondary">#94A3B8</color>
+    <color name="macaron_blue">#38BDF8</color>
+    <color name="status_green">#22C55E</color>
+    <color name="status_red">#EF5350</color>
 </resources>

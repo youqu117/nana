@@ -88,8 +88,7 @@ class MainActivity : AppCompatActivity() {
         
         // Showcase View
         showcasePetView = findViewById(R.id.showcasePetView)
-        showcasePetView.scaleX = 2.0f // Initial larger scale for showcase
-        showcasePetView.scaleY = 2.0f
+        // Note: scaleX/Y removed here as we use setDisplayScale in updateShowcase
         
         // Service Control
         textServiceStatus = findViewById(R.id.textServiceStatus)
@@ -99,17 +98,28 @@ class MainActivity : AppCompatActivity() {
         // Initial check
         updateServiceStatus()
 
-        // Refresh Button
-        findViewById<View>(R.id.fabRefresh).setOnClickListener {
-            lifecycleScope.launch {
-                Toast.makeText(this@MainActivity, "Rescanning assets...", Toast.LENGTH_SHORT).show()
-                AssetScanner.scanAndPopulate(applicationContext, repository)
+        // Bottom Navigation
+        val bottomNav = findViewById<com.google.android.material.bottomnavigation.BottomNavigationView>(R.id.bottom_navigation)
+        bottomNav.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.nav_home -> {
+                    findViewById<androidx.core.widget.NestedScrollView>(R.id.appBar).parent.requestChildFocus(findViewById(R.id.appBar), findViewById(R.id.appBar))
+                    true
+                }
+                R.id.nav_pets -> {
+                    findViewById<androidx.core.widget.NestedScrollView>(R.id.recyclerActivePets).parent.requestChildFocus(findViewById(R.id.recyclerActivePets), findViewById(R.id.recyclerActivePets))
+                    true
+                }
+                R.id.nav_shop -> {
+                     findViewById<androidx.core.widget.NestedScrollView>(R.id.recyclerAdoption).parent.requestChildFocus(findViewById(R.id.recyclerAdoption), findViewById(R.id.recyclerAdoption))
+                     true
+                }
+                R.id.nav_settings -> {
+                    showSettingsDialog()
+                    false 
+                }
+                else -> false
             }
-        }
-
-        // Settings Button
-        findViewById<Button>(R.id.btnSettings).setOnClickListener {
-            showSettingsDialog()
         }
     }
     
@@ -126,9 +136,11 @@ class MainActivity : AppCompatActivity() {
                     
                     // Apply a slightly larger scale than default for showcase visibility
                     val baseScale = manifest.defaultScale.toFloat()
-                    val showcaseScale = baseScale * 1.5f
-                    showcasePetView.scaleX = showcaseScale
-                    showcasePetView.scaleY = showcaseScale
+                    val showcaseScale = baseScale * 1.8f
+                    showcasePetView.setDisplayScale(showcaseScale)
+                    // Reset scaleX/Y because setDisplayScale handles sizing now
+                    showcasePetView.scaleX = 1.0f
+                    showcasePetView.scaleY = 1.0f
                 }
             }
         }
@@ -141,13 +153,13 @@ class MainActivity : AppCompatActivity() {
         }
         
         // Scale
-        val labelScale = TextView(this).apply { text = "Scale: 1.5x" }
+        val labelScale = TextView(this).apply { text = getString(R.string.label_scale, 1.5f) }
         val seekScale = SeekBar(this).apply { max = 15; progress = 5 } // 1.0 + (progress/10.0) -> 1.0 to 2.5
         dialogView.addView(labelScale)
         dialogView.addView(seekScale)
         
         // Alpha
-        val labelAlpha = TextView(this).apply { text = "Opacity: 100%" }
+        val labelAlpha = TextView(this).apply { text = getString(R.string.label_opacity, 100) }
         val seekAlpha = SeekBar(this).apply { max = 10; progress = 10 } // progress/10.0
         dialogView.addView(labelAlpha)
         dialogView.addView(seekAlpha)
@@ -157,21 +169,21 @@ class MainActivity : AppCompatActivity() {
             repository.getSetting("scale").collectLatest { 
                 val scale = it?.toFloatOrNull() ?: 1.5f
                 seekScale.progress = ((scale - 1.0f) * 10).toInt().coerceIn(0, 15)
-                labelScale.text = "Scale: ${String.format("%.1f", scale)}x"
+                labelScale.text = getString(R.string.label_scale, scale)
             }
         }
         lifecycleScope.launch {
              repository.getSetting("alpha").collectLatest {
                  val alpha = it?.toFloatOrNull() ?: 1.0f
                  seekAlpha.progress = (alpha * 10).toInt().coerceIn(1, 10)
-                 labelAlpha.text = "Opacity: ${(alpha * 100).toInt()}%"
+                 labelAlpha.text = getString(R.string.label_opacity, (alpha * 100).toInt())
              }
         }
 
         seekScale.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(p0: SeekBar?, p1: Int, p2: Boolean) {
                 val scale = 1.0f + (p1 / 10.0f)
-                labelScale.text = "Scale: ${String.format("%.1f", scale)}x"
+                labelScale.text = getString(R.string.label_scale, scale)
             }
             override fun onStartTrackingTouch(p0: SeekBar?) {}
             override fun onStopTrackingTouch(p0: SeekBar?) {}
@@ -180,16 +192,16 @@ class MainActivity : AppCompatActivity() {
         seekAlpha.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(p0: SeekBar?, p1: Int, p2: Boolean) {
                 val alpha = p1 / 10.0f
-                labelAlpha.text = "Opacity: ${(alpha * 100).toInt()}%"
+                labelAlpha.text = getString(R.string.label_opacity, (alpha * 100).toInt())
             }
             override fun onStartTrackingTouch(p0: SeekBar?) {}
             override fun onStopTrackingTouch(p0: SeekBar?) {}
         })
 
         android.app.AlertDialog.Builder(this)
-            .setTitle("Global Settings")
+            .setTitle(getString(R.string.dialog_settings_title))
             .setView(dialogView)
-            .setPositiveButton("Save") { _, _ ->
+            .setPositiveButton(getString(R.string.action_save)) { _, _ ->
                 val newScale = 1.0f + (seekScale.progress / 10.0f)
                 val newAlpha = seekAlpha.progress / 10.0f
                 lifecycleScope.launch {
@@ -197,7 +209,7 @@ class MainActivity : AppCompatActivity() {
                     repository.setSetting("alpha", newAlpha.toString())
                 }
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(getString(R.string.action_cancel), null)
             .show()
     }
 
@@ -218,32 +230,48 @@ class MainActivity : AppCompatActivity() {
 
         // Adoption Grid
         val recyclerAdoption = findViewById<RecyclerView>(R.id.recyclerAdoption)
-        recyclerAdoption.layoutManager = GridLayoutManager(this, 2)
+        recyclerAdoption.layoutManager = GridLayoutManager(this, 3) // Changed to 3 columns per React UI
         assetAdapter = PetGridAdapter(
             emptyList(),
             onAdopt = { asset ->
                 lifecycleScope.launch {
                     repository.addInstance(asset.id, asset.name)
-                    Toast.makeText(this@MainActivity, "Adopted ${asset.name}!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@MainActivity, getString(R.string.msg_adopted, asset.name), Toast.LENGTH_SHORT).show()
                 }
             }
         )
         recyclerAdoption.adapter = assetAdapter
+
+        // Adoption Collapsible Logic Removed (Now always visible grid as per React UI)
     }
 
     private fun updateServiceStatus() {
         val isRunning = OverlayService.isServiceRunning
-        textServiceStatus.text = if (isRunning) "Status: Running" else "Status: Stopped"
-        textServiceStatus.setTextColor(if (isRunning) Color.parseColor("#4CAF50") else Color.parseColor("#E64A19"))
-        btnToggleService.text = if (isRunning) "Stop" else "Start"
-        btnToggleService.backgroundTintList = android.content.res.ColorStateList.valueOf(
-            if (isRunning) Color.parseColor("#E64A19") else Color.parseColor("#4CAF50")
-        )
+        
+        // Update Text
+        findViewById<TextView>(R.id.textServiceStatus).text = if (isRunning) "状态：运行中" else "状态：已关闭"
+        
+        // Update Icon & Background
+        val iconBg = findViewById<FrameLayout>(R.id.statusIconBg)
+        val icon = findViewById<ImageView>(R.id.statusIcon)
+        val btnToggle = findViewById<Button>(R.id.btnToggleService)
+        
+        if (isRunning) {
+            iconBg.setBackgroundResource(R.drawable.bg_status_icon_on)
+            icon.setImageResource(android.R.drawable.ic_lock_idle_charging) // Zap icon equivalent
+            icon.imageTintList = android.content.res.ColorStateList.valueOf(getColor(R.color.ui_green))
+            btnToggle.setBackgroundResource(R.drawable.bg_toggle_on)
+        } else {
+            iconBg.setBackgroundResource(R.drawable.bg_status_icon_off)
+            icon.setImageResource(android.R.drawable.ic_lock_power_off)
+            icon.imageTintList = android.content.res.ColorStateList.valueOf(getColor(R.color.ui_text_mute))
+            btnToggle.setBackgroundResource(R.drawable.bg_toggle_off)
+        }
     }
 
     private fun toggleService() {
         if (!hasOverlayPermission()) {
-            Toast.makeText(this, "Please grant Overlay permission first", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, getString(R.string.msg_grant_permission), Toast.LENGTH_LONG).show()
             wasRequestingPermission = true
             requestOverlayPermission()
             return
@@ -252,10 +280,10 @@ class MainActivity : AppCompatActivity() {
         try {
             if (OverlayService.isServiceRunning) {
                 OverlayService.stop(this)
-                Toast.makeText(this, "Stopping service...", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.msg_stopping_service), Toast.LENGTH_SHORT).show()
             } else {
                 OverlayService.start(this)
-                Toast.makeText(this, "Starting service...", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.msg_starting_service), Toast.LENGTH_SHORT).show()
             }
             // Delay update to allow service to start/stop
             window.decorView.postDelayed({ updateServiceStatus() }, 500)
@@ -274,6 +302,24 @@ class MainActivity : AppCompatActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName"))
             startActivity(intent)
+        }
+    }
+
+    override fun onCreateOptionsMenu(menu: android.view.Menu?): Boolean {
+        menuInflater.inflate(R.menu.main_toolbar_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: android.view.MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_refresh -> {
+                lifecycleScope.launch {
+                    Toast.makeText(this@MainActivity, getString(R.string.msg_rescanning), Toast.LENGTH_SHORT).show()
+                    AssetScanner.scanAndPopulate(applicationContext, repository)
+                }
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
         }
     }
 }

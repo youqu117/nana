@@ -64,9 +64,13 @@ class ActivePetAdapter(
 
     class ActiveViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val name: TextView = view.findViewById(R.id.textName)
-        val status: TextView = view.findViewById(R.id.textStatus)
-        val toggleBtn: Button = view.findViewById(R.id.btnToggle)
+        // val status: TextView = view.findViewById(R.id.textStatus) // Removed
+        val toggleBtn: ImageView = view.findViewById(R.id.btnToggle) // Changed to ImageView
         val deleteBtn: ImageView = view.findViewById(R.id.btnDelete)
+        
+        val progressEnergy: android.widget.ProgressBar = view.findViewById(R.id.progressEnergy)
+        val progressMood: android.widget.ProgressBar = view.findViewById(R.id.progressMood)
+        val progressHunger: android.widget.ProgressBar = view.findViewById(R.id.progressHunger)
     }
     
     fun updateData(newPets: List<PetInstanceEntity>) {
@@ -83,8 +87,23 @@ class ActivePetAdapter(
     override fun onBindViewHolder(holder: ActiveViewHolder, position: Int) {
         val pet = pets[position]
         holder.name.text = pet.name
-        holder.status.text = "Energy: ${pet.energy} | Mood: ${pet.mood} | Affection: ${pet.affection}"
-        holder.toggleBtn.text = if (pet.isEnabled) "Hide" else "Show"
+        
+        // Update Progress Bars
+        holder.progressEnergy.progress = pet.energy.coerceIn(0, 100)
+        holder.progressMood.progress = pet.mood.coerceIn(0, 100)
+        // Using affection as hunger/fullness for now, or just map affection to mood 2?
+        // User asked for "Hunger", but Entity has "Affection". 
+        // Let's assume Affection ~ Hunger/Love for now.
+        holder.progressHunger.progress = pet.affection.coerceIn(0, 100)
+
+        // Toggle Icon
+        if (pet.isEnabled) {
+            holder.toggleBtn.setImageResource(android.R.drawable.ic_menu_view)
+            holder.toggleBtn.alpha = 1.0f
+        } else {
+            holder.toggleBtn.setImageResource(android.R.drawable.ic_menu_close_clear_cancel) // Or eye_off if available
+            holder.toggleBtn.alpha = 0.5f
+        }
         
         holder.toggleBtn.setOnClickListener { onToggle(pet) }
         holder.deleteBtn.setOnClickListener { onDelete(pet) }

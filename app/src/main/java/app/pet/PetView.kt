@@ -38,7 +38,58 @@ class PetView @JvmOverloads constructor(
     
     init {
         imageView.setImageResource(normalRes)
+        imageView.adjustViewBounds = true
+        imageView.scaleType = ImageView.ScaleType.FIT_CENTER
         addView(imageView, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT))
+        clipChildren = false
+        clipToPadding = false
+    }
+
+    // Base scale from manifest (defaults to 1.0 if not specified)
+    private var baseScale = 1.0f
+    
+    // External display scale (e.g., from settings)
+    private var displayScale = 1.0f
+    
+    // Facing direction (1 or -1)
+    private var facingDirection = 1
+    
+    fun setDisplayScale(scale: Float) {
+        this.displayScale = scale
+        updateLayoutSize()
+    }
+    
+    fun setFacingDirection(direction: Int) {
+        this.facingDirection = direction
+        // Apply flip using scaleX
+        imageView.scaleX = if (direction > 0) 1f else -1f
+    }
+
+    private fun updateLayoutSize() {
+        // Calculate total scale
+        val totalScale = baseScale * displayScale
+        
+        // We want to scale the ImageView's LAYOUT params, not just visual scale
+        // But ImageView inside FrameLayout needs explicit size to force FrameLayout size change
+        // OR we just use scaleX/Y on the ImageView but ensure FrameLayout is large enough?
+        // Better: Set the ImageView size explicitly based on drawable size * scale
+        
+        val drawable = imageView.drawable ?: return
+        val w = drawable.intrinsicWidth
+        val h = drawable.intrinsicHeight
+        if (w <= 0 || h <= 0) return
+        
+        val targetW = (w * totalScale).toInt()
+        val targetH = (h * totalScale).toInt()
+        
+        val lp = imageView.layoutParams
+        lp.width = targetW
+        lp.height = targetH
+        imageView.layoutParams = lp
+        
+        // Reset scaleX/Y to 1 (except for direction flip)
+        imageView.scaleX = if (facingDirection > 0) 1f else -1f
+        imageView.scaleY = 1f
     }
 
     fun loadAssets(manifest: ContentPackManifest) {
@@ -56,9 +107,16 @@ class PetView @JvmOverloads constructor(
                 }
             }
             
-            // Apply scale
-            imageView.scaleX = manifest.defaultScale.toFloat()
-            imageView.scaleY = manifest.defaultScale.toFloat()
+            // Set base scale
+            baseScale = manifest.defaultScale.toFloat()
+            
+            // Initial update
+            // Set the image first so updateLayoutSize can read intrinsic dimensions
+            if (normalBitmap != null) imageView.setImageBitmap(normalBitmap)
+            else imageView.setImageResource(normalRes)
+            
+            updateLayoutSize()
+            
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -130,6 +188,8 @@ class PetView @JvmOverloads constructor(
             if (tongueBitmap != null) imageView.setImageBitmap(tongueBitmap)
             else imageView.setImageResource(tongueRes)
             imageView.rotation = 0f
+            // Update layout if bitmap changed dimensions
+            // updateLayoutSize() // Optimization: Assume similar sizes for now
             return
         }
         
@@ -163,6 +223,7 @@ class PetView @JvmOverloads constructor(
             if (frameIndex < anim.frames.size) {
                 imageView.setImageBitmap(anim.frames[frameIndex])
                 imageView.rotation = 0f
+                // In a perfect world we'd updateLayoutSize() here if frames differ in size
                 return
             }
         }

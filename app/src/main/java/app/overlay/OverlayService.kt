@@ -71,10 +71,10 @@ class OverlayService : Service() {
         }
 
         return builder
-            .setContentTitle(NOTIFICATION_TITLE)
-            .setContentText(NOTIFICATION_TEXT)
+            .setContentTitle(getString(R.string.notification_title))
+            .setContentText(getString(R.string.notification_text))
             .setSmallIcon(android.R.drawable.star_on)
-            .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Exit", stopPendingIntent)
+            .addAction(android.R.drawable.ic_menu_close_clear_cancel, getString(R.string.notification_action_exit), stopPendingIntent)
             .build()
     }
 
@@ -82,7 +82,7 @@ class OverlayService : Service() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         val channel = NotificationChannel(
             CHANNEL_ID,
-            CHANNEL_NAME,
+            getString(R.string.notification_channel_name),
             NotificationManager.IMPORTANCE_LOW
         )
         val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -91,10 +91,7 @@ class OverlayService : Service() {
 
     companion object {
         private const val CHANNEL_ID = "overlay_pet_channel"
-        private const val CHANNEL_NAME = "桌宠悬浮服务"
         private const val NOTIFICATION_ID = 1001
-        private const val NOTIFICATION_TITLE = "桌宠正在运行"
-        private const val NOTIFICATION_TEXT = "点击返回应用进行设置"
         private const val ACTION_STOP = "app.overlay.ACTION_STOP"
 
         var isServiceRunning = false
