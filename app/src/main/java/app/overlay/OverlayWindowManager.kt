@@ -27,6 +27,8 @@ import kotlinx.coroutines.flow.collect
 import kotlin.random.Random
 import android.animation.ValueAnimator
 
+import app.content.AssetLoader
+
 class OverlayWindowManager(
     private val context: Context,
     private val repository: PetRepository,
@@ -34,24 +36,11 @@ class OverlayWindowManager(
 ) {
     private val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
     
-    // Dummy Manifest for MVP
-    private val dummyManifest = ContentPackManifest(
-        id = "shiba_default",
-        name = "Shiba",
-        version = 1,
-        preview = "",
-        staticNormal = "pets/dog_shiba/static/pet_normal.png",
-        staticTongue = "pets/dog_shiba/static/pet_tongue.png",
-        idleSheet = "",
-        idleAnim = "",
-        defaultScale = 3,
-        hitbox = Hitbox(0,0,32,30),
-        anchors = Anchors(0,0,0,0,0,0)
-    )
-
     private val petView = PetView(context)
-    private val petRuntime = PetRuntime(dummyManifest)
-    private val petController = PetController(petView, petRuntime)
+    
+    // Runtime & Controller (Mutable to support switching pets)
+    private var petRuntime: PetRuntime? = null
+    private var petController: PetController? = null
     
     private var isShowing = false
     private val handler = Handler(Looper.getMainLooper())
@@ -82,17 +71,17 @@ class OverlayWindowManager(
     }
 
     private val gestureHandler = GestureHandler(
-        onTap = { petController.onTap() },
-        onDoubleTap = { petController.onDoubleTap() },
-        onLongPress = { petController.onLongPress() },
+        onTap = { petController?.onTap() },
+        onDoubleTap = { petController?.onDoubleTap() },
+        onLongPress = { petController?.onLongPress() },
         onDragStart = { 
-            petController.onLongPress() // Treat drag start as held
+            petController?.onLongPress() // Treat drag start as held
         },
         onDrag = { dx, dy -> 
             moveBy(dx, dy) 
         },
         onDragEnd = {
-            petController.onRelease()
+            petController?.onRelease()
             snapToEdge()
         }
     )
@@ -104,7 +93,19 @@ class OverlayWindowManager(
             repository.enabledInstances.collect { instances ->
                 if (instances.isNotEmpty()) {
                     val newEntity = instances.first()
-                    // If switching pets or first load, restore state
+                    
+                    // 1. Load Assets / Runtime if asset changed
+                    if (currentEntity?.assetId != newEntity.assetId || petRuntime == null) {
+                        val manifest = AssetLoader.loadManifest(context, newEntity.assetId)
+                        if (manifest != null) {
+                            petView.loadAssets(manifest)
+                            val rt = PetRuntime(manifest)
+                            petRuntime = rt
+                            petController = PetController(petView, rt)
+                        }
+                    }
+                    
+                    // 2. Restore State if instance changed
                     if (currentEntity?.instanceId != newEntity.instanceId) {
                          val loadedState = PetState(
                             energy = newEntity.energy,
@@ -112,8 +113,9 @@ class OverlayWindowManager(
                             affection = newEntity.affection,
                             lastTickMs = System.currentTimeMillis()
                         )
-                        petRuntime.restoreState(loadedState)
+                        petRuntime?.restoreState(loadedState)
                     }
+                    
                     currentEntity = newEntity
                 }
             }
@@ -139,7 +141,7 @@ class OverlayWindowManager(
     
     private fun saveState() {
         val entity = currentEntity ?: return
-        val s = petRuntime.state
+        val s = petRuntime?.state ?: return
         val updated = entity.copy(
             energy = s.energy,
             mood = s.mood,
@@ -154,7 +156,7 @@ class OverlayWindowManager(
         override fun run() {
             if (!isShowing) return
 
-            petController.update()
+            petController?.update()
             
             // Save state periodically (every 30s)
             val now = System.currentTimeMillis()
@@ -164,7 +166,11 @@ class OverlayWindowManager(
             }
             
             // Handle Movement based on Behavior
-            val state = petRuntime.state
+            val state = petRuntime?.state ?: run {
+                handler.postDelayed(this, 33)
+                return
+            }
+            
             if (state.behavior == PetBehavior.WALK) {
                 // Bounce off edges
                 val screenSize = getScreenSize()

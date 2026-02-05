@@ -146,6 +146,16 @@ class MainActivity : AppCompatActivity() {
             }
         }
         container.addView(addPetButton)
+
+        val addCatButton = Button(this).apply {
+            text = "+ 领养橘猫 (Orange Cat)"
+            setOnClickListener {
+                lifecycleScope.launch {
+                    repository.addInstance("cat_orange", "大橘 ${System.currentTimeMillis() % 100}")
+                }
+            }
+        }
+        container.addView(addCatButton)
     }
 
     private fun formatAge(adoptionTime: Long): String {
