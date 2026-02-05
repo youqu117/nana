@@ -13,6 +13,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import app.data.AppDatabase
 import app.data.PetRepository
+import com.pixelpet.R
 
 class OverlayService : Service() {
     private lateinit var overlayWindowManager: OverlayWindowManager

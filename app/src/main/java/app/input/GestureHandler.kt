@@ -1,72 +1,89 @@
 package app.input
 
+import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
-import android.view.ViewConfiguration
 import kotlin.math.abs
 
 class GestureHandler(
     private val onTap: () -> Unit,
+    private val onDoubleTap: () -> Unit,
+    private val onLongPress: () -> Unit,
     private val onDragStart: () -> Unit,
     private val onDrag: (dx: Int, dy: Int) -> Unit,
     private val onDragEnd: () -> Unit
 ) : View.OnTouchListener {
-    private var touchSlop = 0
-    private var lastX = 0f
-    private var lastY = 0f
-    private var downX = 0f
-    private var downY = 0f
-    private var downTime = 0L
+
+    private lateinit var gestureDetector: GestureDetector
     private var isDragging = false
+    private var lastRawX = 0f
+    private var lastRawY = 0f
+    private var initialX = 0f
+    private var initialY = 0f
 
     override fun onTouch(view: View, event: MotionEvent): Boolean {
-        if (touchSlop == 0) {
-            touchSlop = ViewConfiguration.get(view.context).scaledTouchSlop
+        if (!::gestureDetector.isInitialized) {
+            gestureDetector = GestureDetector(view.context, GestureListener())
         }
+        
+        // Handle Dragging manually as GestureDetector doesn't handle raw movement efficiently for overlays
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
-                downX = event.rawX
-                downY = event.rawY
-                lastX = downX
-                lastY = downY
-                downTime = event.eventTime
+                lastRawX = event.rawX
+                lastRawY = event.rawY
+                initialX = event.rawX
+                initialY = event.rawY
                 isDragging = false
-                return true
             }
             MotionEvent.ACTION_MOVE -> {
-                val dx = (event.rawX - lastX).toInt()
-                val dy = (event.rawY - lastY).toInt()
-                if (!isDragging && (abs(event.rawX - downX) > touchSlop || abs(event.rawY - downY) > touchSlop)) {
-                    isDragging = true
-                    onDragStart()
+                val dx = (event.rawX - lastRawX).toInt()
+                val dy = (event.rawY - lastRawY).toInt()
+                
+                // Threshold for drag start
+                if (!isDragging) {
+                    val dist = abs(event.rawX - initialX) + abs(event.rawY - initialY)
+                    if (dist > 10) { // Simple slop
+                        isDragging = true
+                        onDragStart()
+                    }
                 }
+                
                 if (isDragging) {
                     onDrag(dx, dy)
-                    lastX = event.rawX
-                    lastY = event.rawY
+                    lastRawX = event.rawX
+                    lastRawY = event.rawY
+                    return true // Consume drag
                 }
-                return true
             }
-            MotionEvent.ACTION_UP -> {
-                val elapsed = event.eventTime - downTime
-                if (!isDragging && elapsed < TAP_TIMEOUT) {
-                    onTap()
-                } else if (isDragging) {
-                    onDragEnd()
-                }
-                return true
-            }
-            MotionEvent.ACTION_CANCEL -> {
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 if (isDragging) {
                     onDragEnd()
+                    isDragging = false
+                    return true
                 }
-                return true
             }
         }
-        return false
+
+        return gestureDetector.onTouchEvent(event)
     }
 
-    companion object {
-        private const val TAP_TIMEOUT = 250L
+    private inner class GestureListener : GestureDetector.SimpleOnGestureListener() {
+        override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
+            onTap()
+            return true
+        }
+
+        override fun onDoubleTap(e: MotionEvent): Boolean {
+            onDoubleTap()
+            return true
+        }
+
+        override fun onLongPress(e: MotionEvent) {
+            if (!isDragging) {
+                onLongPress()
+            }
+        }
+        
+        override fun onDown(e: MotionEvent): Boolean = true
     }
 }

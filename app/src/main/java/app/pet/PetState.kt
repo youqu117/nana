@@ -40,7 +40,7 @@ data class PetState(
         
         if (tenMinIntervals >= 1) {
             val change = if (behavior == PetBehavior.SLEEP) 3 else -1
-            newEnergy = (energy + (change * tenMinIntervals)).coerceIn(0, 100)
+            newEnergy = (energy + (change * tenMinIntervals)).toInt().coerceIn(0, 100)
         }
 
         // Mood Logic (based on Energy)
@@ -49,9 +49,9 @@ data class PetState(
         val thirtyMinIntervals = minutesPassed / 30
         if (thirtyMinIntervals >= 1) {
             if (newEnergy > 60) {
-                newMood = (newMood + (1 * thirtyMinIntervals)).coerceAtMost(100) // Cap at +100 (Spec says +40 from base?)
+                newMood = (newMood + (1 * thirtyMinIntervals)).toInt().coerceAtMost(100) // Cap at +100
             } else if (newEnergy < 20) {
-                newMood = (newMood - (2 * thirtyMinIntervals)).coerceAtLeast(-100) // Min -100 (Spec says -60?)
+                newMood = (newMood - (2 * thirtyMinIntervals)).toInt().coerceAtLeast(-100) // Min -100
             }
         }
         

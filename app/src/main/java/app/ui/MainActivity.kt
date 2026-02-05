@@ -16,7 +16,13 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import app.data.AppDatabase
+import app.data.AssetScanner
+import app.data.PetInstanceEntity
 import app.data.PetRepository
+import app.overlay.OverlayService
+import com.pixelpet.R
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
     private lateinit var repository: PetRepository
@@ -50,8 +56,11 @@ class MainActivity : AppCompatActivity() {
 
         buildHomeConsoleUI()
 
-        // Observe Data
+        // Initialize & Observe Data
         lifecycleScope.launch {
+            // Scan for new assets on startup
+            AssetScanner.scanAndPopulate(applicationContext, repository)
+            
             repository.allInstances.collectLatest { instances ->
                 refreshPetList(instances)
             }

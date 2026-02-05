@@ -8,24 +8,17 @@ import android.os.Build
 import android.view.Gravity
 import android.view.WindowManager
 import android.graphics.Rect
-import kotlin.math.max
-import kotlin.math.min
-import app.input.GestureHandler
-import app.pet.PetController
-import app.pet.PetView
-import app.pet.PetRuntime
-import app.pet.PetBehavior
-import app.pet.PetState
-import app.content.ContentPackManifest
-import app.content.Hitbox
-import app.content.Anchors
-import app.data.PetRepository
 import app.data.PetInstanceEntity
+import app.data.PetRepository
+import app.input.GestureHandler
+import app.pet.PetBehavior
+import app.pet.PetController
+import app.pet.PetRuntime
+import app.pet.PetState
+import app.pet.PetView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.flow.collect
-import kotlin.random.Random
-import android.animation.ValueAnimator
+import kotlin.math.max
 
 import app.content.AssetLoader
 
@@ -233,79 +226,6 @@ class OverlayWindowManager(
         moveTo(targetX, layoutParams.y)
     }
 
-    private fun startAutoMove() {
-        if (!isShowing) return
-        scheduleNextAutoMove()
-    }
-
-    private fun stopAutoMove() {
-        autoMoveRunnable?.let { handler.removeCallbacks(it) }
-        autoMoveRunnable = null
-        autoMoveAnimator?.cancel()
-        autoMoveAnimator = null
-    }
-
-    private fun pauseAutoMove() {
-        isDragging = true
-        stopAutoMove()
-    }
-
-    private fun resumeAutoMove() {
-        isDragging = false
-        scheduleNextAutoMove()
-    }
-
-    private fun scheduleNextAutoMove() {
-        if (!isShowing || isDragging) return
-        if (autoMoveRunnable != null) return
-        val delayMs = Random.nextLong(AUTO_MOVE_DELAY_MIN_MS, AUTO_MOVE_DELAY_MAX_MS)
-        val runnable = Runnable {
-            if (!isShowing || isDragging) return@Runnable
-            autoMoveRunnable = null
-            performAutoMove()
-            scheduleNextAutoMove()
-        }
-        autoMoveRunnable = runnable
-        handler.postDelayed(runnable, delayMs)
-    }
-
-    private fun performAutoMove() {
-        val screenSize = getScreenSize()
-        val viewWidth = petView.width
-        val viewHeight = petView.height
-        if (viewWidth == 0 || viewHeight == 0) {
-            autoMoveRunnable = null
-            scheduleNextAutoMove()
-            return
-        }
-
-        val startX = layoutParams.x
-        val startY = layoutParams.y
-        val edgeBand = EDGE_BAND_PX
-        val maxX = max(EDGE_PADDING_PX, screenSize.x - viewWidth - EDGE_PADDING_PX)
-        val maxY = max(EDGE_PADDING_PX, screenSize.y - viewHeight - EDGE_PADDING_PX)
-        val snapLeft = Random.nextBoolean()
-        val targetX = if (snapLeft) {
-            EDGE_PADDING_PX + Random.nextInt(0, min(edgeBand, maxX - EDGE_PADDING_PX) + 1)
-        } else {
-            max(EDGE_PADDING_PX, maxX - edgeBand) + Random.nextInt(0, min(edgeBand, maxX - EDGE_PADDING_PX) + 1)
-        }
-        val targetY = Random.nextInt(EDGE_PADDING_PX, maxY + 1)
-
-        autoMoveAnimator?.cancel()
-        autoMoveAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
-            duration = AUTO_MOVE_ANIM_MS
-            addUpdateListener { animation ->
-                val fraction = animation.animatedFraction
-                val newX = startX + ((targetX - startX) * fraction).toInt()
-                val newY = startY + ((targetY - startY) * fraction).toInt()
-                moveTo(newX, newY)
-            }
-            doOnEndOrCancel { autoMoveAnimator = null }
-        }
-        autoMoveAnimator?.start()
-    }
-
     private fun clampToScreen(x: Int, y: Int): Pair<Int, Int> {
         val screenSize = getScreenSize()
         val viewWidth = petView.width
@@ -333,18 +253,6 @@ class OverlayWindowManager(
 
     companion object {
         private const val EDGE_PADDING_PX = 12
-        private const val EDGE_BAND_PX = 120
-        private const val AUTO_MOVE_ANIM_MS = 600L
-        private const val AUTO_MOVE_DELAY_MIN_MS = 3000L
-        private const val AUTO_MOVE_DELAY_MAX_MS = 6000L
     }
 }
 
-private fun ValueAnimator.doOnEndOrCancel(block: () -> Unit) {
-    addListener(object : android.animation.Animator.AnimatorListener {
-        override fun onAnimationStart(animation: android.animation.Animator) {}
-        override fun onAnimationEnd(animation: android.animation.Animator) = block()
-        override fun onAnimationCancel(animation: android.animation.Animator) = block()
-        override fun onAnimationRepeat(animation: android.animation.Animator) {}
-    })
-}
