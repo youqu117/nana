@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import app.data.PetAssetEntity
 import app.data.PetInstanceEntity
@@ -37,16 +38,7 @@ class PetGridAdapter(
     override fun onBindViewHolder(holder: PetViewHolder, position: Int) {
         val asset = assets[position]
         holder.name.text = asset.name
-        
-        try {
-            holder.itemView.context.assets.open(asset.previewPath).use { stream ->
-                val bitmap = BitmapFactory.decodeStream(stream)
-                holder.image.setImageBitmap(bitmap)
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            holder.image.setImageResource(android.R.drawable.ic_menu_help)
-        }
+        loadPreview(holder.itemView.context, holder.image, asset.previewPath)
 
         holder.itemView.setOnClickListener {
             onAdopt(asset)
@@ -61,11 +53,12 @@ class ActivePetAdapter(
     private val onToggle: (PetInstanceEntity) -> Unit,
     private val onDelete: (PetInstanceEntity) -> Unit
 ) : RecyclerView.Adapter<ActivePetAdapter.ActiveViewHolder>() {
+    private var previewPaths: Map<String, String> = emptyMap()
 
     class ActiveViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val name: TextView = view.findViewById(R.id.textName)
-        // val status: TextView = view.findViewById(R.id.textStatus) // Removed
-        val toggleBtn: ImageView = view.findViewById(R.id.btnToggle) // Changed to ImageView
+        val preview: ImageView = view.findViewById(R.id.imgActivePetPreview)
+        val toggleBtn: Button = view.findViewById(R.id.btnToggle)
         val deleteBtn: ImageView = view.findViewById(R.id.btnDelete)
         
         val progressEnergy: android.widget.ProgressBar = view.findViewById(R.id.progressEnergy)
@@ -78,6 +71,11 @@ class ActivePetAdapter(
         notifyDataSetChanged()
     }
 
+    fun updateAssets(assets: List<PetAssetEntity>) {
+        previewPaths = assets.associate { it.id to it.previewPath }
+        notifyDataSetChanged()
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ActiveViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_active_pet, parent, false)
@@ -87,27 +85,61 @@ class ActivePetAdapter(
     override fun onBindViewHolder(holder: ActiveViewHolder, position: Int) {
         val pet = pets[position]
         holder.name.text = pet.name
-        
-        // Update Progress Bars
+        loadPreview(holder.itemView.context, holder.preview, previewPaths[pet.assetId])
+
         holder.progressEnergy.progress = pet.energy.coerceIn(0, 100)
         holder.progressMood.progress = pet.mood.coerceIn(0, 100)
-        // Using affection as hunger/fullness for now, or just map affection to mood 2?
-        // User asked for "Hunger", but Entity has "Affection". 
-        // Let's assume Affection ~ Hunger/Love for now.
         holder.progressHunger.progress = pet.affection.coerceIn(0, 100)
 
-        // Toggle Icon
         if (pet.isEnabled) {
-            holder.toggleBtn.setImageResource(android.R.drawable.ic_menu_view)
-            holder.toggleBtn.alpha = 1.0f
+            holder.toggleBtn.text = holder.itemView.context.getString(R.string.action_pause)
+            holder.toggleBtn.setBackgroundResource(R.drawable.bg_btn_primary)
+            holder.toggleBtn.setTextColor(ContextCompat.getColor(holder.itemView.context, android.R.color.white))
         } else {
-            holder.toggleBtn.setImageResource(android.R.drawable.ic_menu_close_clear_cancel) // Or eye_off if available
-            holder.toggleBtn.alpha = 0.5f
+            holder.toggleBtn.text = holder.itemView.context.getString(R.string.action_resume)
+            holder.toggleBtn.setBackgroundResource(R.drawable.bg_btn_secondary)
+            holder.toggleBtn.setTextColor(ContextCompat.getColor(holder.itemView.context, R.color.ui_text_main))
         }
-        
+
         holder.toggleBtn.setOnClickListener { onToggle(pet) }
         holder.deleteBtn.setOnClickListener { onDelete(pet) }
     }
 
     override fun getItemCount() = pets.size
+}
+
+private fun loadPreview(context: Context, imageView: ImageView, path: String?) {
+    if (path.isNullOrBlank()) {
+        imageView.setImageResource(android.R.drawable.ic_menu_help)
+        return
+    }
+    val options = BitmapFactory.Options().apply {
+        inScaled = false
+        inPreferredConfig = android.graphics.Bitmap.Config.ARGB_8888
+    }
+    try {
+        context.assets.open(path).use { stream ->
+            val bitmap = BitmapFactory.decodeStream(stream, null, options)
+            if (bitmap != null) {
+                imageView.setImageBitmap(bitmap)
+                imageView.setFilterBitmap(false)
+                return
+            }
+        }
+    } catch (e: Exception) {
+        try {
+            val b64Path = "$path.base64"
+            val b64String = context.assets.open(b64Path).bufferedReader().use { it.readText() }
+            val bytes = android.util.Base64.decode(b64String, android.util.Base64.DEFAULT)
+            val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options)
+            if (bitmap != null) {
+                imageView.setImageBitmap(bitmap)
+                imageView.setFilterBitmap(false)
+                return
+            }
+        } catch (e2: Exception) {
+            e2.printStackTrace()
+        }
+    }
+    imageView.setImageResource(android.R.drawable.ic_menu_help)
 }

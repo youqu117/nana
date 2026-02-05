@@ -1,9 +1,16 @@
 <resources>
     <string name="app_name">Nana Pet</string>
     <string name="title_activity_main">Nana Pet Console</string>
+    <string name="title_console">Nana Pet 控制台</string>
+    <string name="label_pet_status">Level 12 • Tabby Cat</string>
     
     <!-- UI Labels -->
     <string name="label_desktop_overlay">Desktop Overlay</string>
+    <string name="label_desktop_overlay_cn">悬浮窗</string>
+    <string name="status_running_cn">状态：已开启</string>
+    <string name="status_stopped_cn">状态：已关闭</string>
+    <string name="action_start_service">开启</string>
+    <string name="action_stop_service">关闭</string>
     <string name="status_running">Status: Running</string>
     <string name="status_stopped">Status: Stopped</string>
     <string name="action_start">START</string>
@@ -13,7 +20,10 @@
     <string name="action_configure">CONFIGURE</string>
     
     <string name="label_my_pets">My Pets</string>
+    <string name="label_my_pets_cn">我的桌宠</string>
     <string name="label_adopt">Adopt a Friend</string>
+    <string name="label_adopt_cn">软件中心</string>
+    <string name="label_all_pets_count">全部</string>
     
     <string name="msg_rescanning">Rescanning assets...</string>
     <string name="msg_grant_permission">Please grant Overlay permission first</string>
@@ -29,4 +39,10 @@
     <string name="label_opacity">Opacity: %d%%</string>
     <string name="action_save">Save</string>
     <string name="action_cancel">Cancel</string>
+    <string name="action_pause">暂停互动</string>
+    <string name="action_resume">继续互动</string>
+    <string name="label_level">LV.5</string>
+    <string name="label_energy">能量</string>
+    <string name="label_mood">心情</string>
+    <string name="label_hunger">饱腹</string>
 </resources>

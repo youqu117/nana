@@ -22,30 +22,48 @@
             android:orientation="horizontal"
             android:gravity="center_vertical"
             android:layout_marginBottom="16dp">
-            
-            <TextView
-                android:id="@+id/textName"
+
+            <FrameLayout
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:background="@drawable/bg_pet_icon_circle"
+                android:layout_marginEnd="12dp">
+                <ImageView
+                    android:id="@+id/imgActivePetPreview"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_pet_preview"/>
+            </FrameLayout>
+
+            <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Name"
-                android:textStyle="bold"
-                android:textSize="18sp"
-                android:textColor="@color/ui_text_title"/>
-            
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="LV.5"
-                android:textSize="12sp"
-                android:textStyle="bold"
-                android:textColor="@color/ui_sky_dark"
-                android:background="@drawable/bg_level_badge"
-                android:paddingStart="8dp"
-                android:paddingEnd="8dp"
-                android:paddingTop="2dp"
-                android:paddingBottom="2dp"
-                android:layout_marginEnd="8dp"/>
+                android:orientation="vertical">
+                <TextView
+                    android:id="@+id/textName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Name"
+                    android:textStyle="bold"
+                    android:textSize="18sp"
+                    android:textColor="@color/ui_text_title"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/label_level"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/ui_sky_dark"
+                    android:background="@drawable/bg_level_badge"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp"
+                    android:paddingTop="2dp"
+                    android:paddingBottom="2dp"/>
+            </LinearLayout>
                 
             <ImageView
                 android:id="@+id/btnDelete"
@@ -78,7 +96,7 @@
                 <TextView
                     android:layout_width="60dp"
                     android:layout_height="wrap_content"
-                    android:text="Energy"
+                    android:text="@string/label_energy"
                     android:textSize="12sp"
                     android:textColor="@color/ui_text_mute"
                     android:layout_marginStart="8dp"/>
@@ -109,7 +127,7 @@
                 <TextView
                     android:layout_width="60dp"
                     android:layout_height="wrap_content"
-                    android:text="Mood"
+                    android:text="@string/label_mood"
                     android:textSize="12sp"
                     android:textColor="@color/ui_text_mute"
                     android:layout_marginStart="8dp"/>
@@ -139,7 +157,7 @@
                 <TextView
                     android:layout_width="60dp"
                     android:layout_height="wrap_content"
-                    android:text="Hunger"
+                    android:text="@string/label_hunger"
                     android:textSize="12sp"
                     android:textColor="@color/ui_text_mute"
                     android:layout_marginStart="8dp"/>
@@ -161,7 +179,7 @@
             android:id="@+id/btnToggle"
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:text="交 互"
+            android:text="@string/action_pause"
             android:textStyle="bold"
             android:textSize="16sp"
             android:textColor="@android:color/white"

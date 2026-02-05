@@ -1,27 +1,23 @@
 package app.ui
 
 import android.content.Intent
-import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import android.view.Gravity
 import android.view.View
-import android.view.ViewGroup
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
-import androidx.cardview.widget.CardView
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import app.data.AppDatabase
 import app.data.AssetScanner
-import app.data.PetAssetEntity
 import app.data.PetInstanceEntity
 import app.data.PetRepository
 import app.overlay.OverlayService
+import com.google.android.material.switchmaterial.SwitchMaterial
 import com.pixelpet.R
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -32,23 +28,21 @@ class MainActivity : AppCompatActivity() {
     private lateinit var repository: PetRepository
     private lateinit var activeAdapter: ActivePetAdapter
     private lateinit var assetAdapter: PetGridAdapter
-    private lateinit var textServiceStatus: TextView
     private lateinit var btnToggleService: Button
-    private lateinit var showcasePetView: app.pet.PetView // Add showcase view
+    private lateinit var switchOverlay: SwitchMaterial
+    private lateinit var showcasePetView: app.pet.PetView
+    private var isUpdatingToggle = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         
-        // Database Init
         val db = AppDatabase.getDatabase(this)
         repository = PetRepository(db.petDao(), db.settingsDao())
 
-        // UI Setup
         setupViews()
         setupAdapters()
-        
-        // Data Observation
+
         lifecycleScope.launch {
             AssetScanner.scanAndPopulate(applicationContext, repository)
             
@@ -56,7 +50,6 @@ class MainActivity : AppCompatActivity() {
                 repository.allInstances.collectLatest { pets ->
                     activeAdapter.updateData(pets)
                     
-                    // Update Showcase with the first enabled pet (or just first one)
                     if (pets.isNotEmpty()) {
                         val activePet = pets.firstOrNull { it.isEnabled } ?: pets.first()
                         updateShowcase(activePet)
@@ -67,6 +60,10 @@ class MainActivity : AppCompatActivity() {
             launch {
                 repository.allAssets.collectLatest { assets ->
                     assetAdapter.updateData(assets)
+                    activeAdapter.updateAssets(assets)
+                    if (assets.isNotEmpty() && activeAdapter.itemCount == 0) {
+                        updateShowcaseByAssetId(assets.first().id)
+                    }
                 }
             }
         }
@@ -74,7 +71,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        // Auto-start if permission was just granted
         if (hasOverlayPermission() && wasRequestingPermission) {
             wasRequestingPermission = false
             toggleService()
@@ -83,35 +79,38 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupViews() {
-        // Toolbar
         setSupportActionBar(findViewById(R.id.toolbar))
         
-        // Showcase View
         showcasePetView = findViewById(R.id.showcasePetView)
-        // Note: scaleX/Y removed here as we use setDisplayScale in updateShowcase
-        
-        // Service Control
-        textServiceStatus = findViewById(R.id.textServiceStatus)
+
         btnToggleService = findViewById(R.id.btnToggleService)
         btnToggleService.setOnClickListener { toggleService() }
+        switchOverlay = findViewById(R.id.switchOverlay)
+        switchOverlay.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingToggle) return@setOnCheckedChangeListener
+            if (isChecked != OverlayService.isServiceRunning) {
+                toggleService()
+            }
+        }
 
-        // Initial check
         updateServiceStatus()
 
-        // Bottom Navigation
         val bottomNav = findViewById<com.google.android.material.bottomnavigation.BottomNavigationView>(R.id.bottom_navigation)
+        val scrollView = findViewById<androidx.core.widget.NestedScrollView>(R.id.nestedScrollView)
+        val activeSection = findViewById<View>(R.id.recyclerActivePets)
+        val adoptionSection = findViewById<View>(R.id.recyclerAdoption)
         bottomNav.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.nav_home -> {
-                    findViewById<androidx.core.widget.NestedScrollView>(R.id.appBar).parent.requestChildFocus(findViewById(R.id.appBar), findViewById(R.id.appBar))
+                    scrollView.smoothScrollTo(0, 0)
                     true
                 }
                 R.id.nav_pets -> {
-                    findViewById<androidx.core.widget.NestedScrollView>(R.id.recyclerActivePets).parent.requestChildFocus(findViewById(R.id.recyclerActivePets), findViewById(R.id.recyclerActivePets))
+                    scrollView.smoothScrollTo(0, activeSection.top)
                     true
                 }
                 R.id.nav_shop -> {
-                     findViewById<androidx.core.widget.NestedScrollView>(R.id.recyclerAdoption).parent.requestChildFocus(findViewById(R.id.recyclerAdoption), findViewById(R.id.recyclerAdoption))
+                     scrollView.smoothScrollTo(0, adoptionSection.top)
                      true
                 }
                 R.id.nav_settings -> {
@@ -131,14 +130,28 @@ class MainActivity : AppCompatActivity() {
             if (manifest != null) {
                 kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
                     showcasePetView.loadAssets(manifest)
-                    // Optional: Reset state to idle
                     showcasePetView.updateState(PetState())
                     
-                    // Apply a slightly larger scale than default for showcase visibility
                     val baseScale = manifest.defaultScale.toFloat()
                     val showcaseScale = baseScale * 1.8f
                     showcasePetView.setDisplayScale(showcaseScale)
-                    // Reset scaleX/Y because setDisplayScale handles sizing now
+                    showcasePetView.scaleX = 1.0f
+                    showcasePetView.scaleY = 1.0f
+                }
+            }
+        }
+    }
+
+    private fun updateShowcaseByAssetId(assetId: String) {
+        lifecycleScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            val manifest = AssetLoader.loadManifest(applicationContext, assetId)
+            if (manifest != null) {
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                    showcasePetView.loadAssets(manifest)
+                    showcasePetView.updateState(PetState())
+                    val baseScale = manifest.defaultScale.toFloat()
+                    val showcaseScale = baseScale * 1.8f
+                    showcasePetView.setDisplayScale(showcaseScale)
                     showcasePetView.scaleX = 1.0f
                     showcasePetView.scaleY = 1.0f
                 }
@@ -152,19 +165,16 @@ class MainActivity : AppCompatActivity() {
             setPadding(40, 40, 40, 40)
         }
         
-        // Scale
         val labelScale = TextView(this).apply { text = getString(R.string.label_scale, 1.5f) }
-        val seekScale = SeekBar(this).apply { max = 15; progress = 5 } // 1.0 + (progress/10.0) -> 1.0 to 2.5
+        val seekScale = SeekBar(this).apply { max = 15; progress = 5 }
         dialogView.addView(labelScale)
         dialogView.addView(seekScale)
         
-        // Alpha
         val labelAlpha = TextView(this).apply { text = getString(R.string.label_opacity, 100) }
-        val seekAlpha = SeekBar(this).apply { max = 10; progress = 10 } // progress/10.0
+        val seekAlpha = SeekBar(this).apply { max = 10; progress = 10 }
         dialogView.addView(labelAlpha)
         dialogView.addView(seekAlpha)
         
-        // Load current values
         lifecycleScope.launch {
             repository.getSetting("scale").collectLatest { 
                 val scale = it?.toFloatOrNull() ?: 1.5f
@@ -214,7 +224,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupAdapters() {
-        // Active Pets
         val recyclerActive = findViewById<RecyclerView>(R.id.recyclerActivePets)
         recyclerActive.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         activeAdapter = ActivePetAdapter(
@@ -228,9 +237,8 @@ class MainActivity : AppCompatActivity() {
         )
         recyclerActive.adapter = activeAdapter
 
-        // Adoption Grid
         val recyclerAdoption = findViewById<RecyclerView>(R.id.recyclerAdoption)
-        recyclerAdoption.layoutManager = GridLayoutManager(this, 3) // Changed to 3 columns per React UI
+        recyclerAdoption.layoutManager = GridLayoutManager(this, 3)
         assetAdapter = PetGridAdapter(
             emptyList(),
             onAdopt = { asset ->
@@ -241,31 +249,30 @@ class MainActivity : AppCompatActivity() {
             }
         )
         recyclerAdoption.adapter = assetAdapter
-
-        // Adoption Collapsible Logic Removed (Now always visible grid as per React UI)
     }
 
     private fun updateServiceStatus() {
         val isRunning = OverlayService.isServiceRunning
         
-        // Update Text
-        findViewById<TextView>(R.id.textServiceStatus).text = if (isRunning) "状态：运行中" else "状态：已关闭"
-        
-        // Update Icon & Background
-        val iconBg = findViewById<FrameLayout>(R.id.statusIconBg)
-        val icon = findViewById<ImageView>(R.id.statusIcon)
-        val btnToggle = findViewById<Button>(R.id.btnToggleService)
-        
-        if (isRunning) {
-            iconBg.setBackgroundResource(R.drawable.bg_status_icon_on)
-            icon.setImageResource(android.R.drawable.ic_lock_idle_charging) // Zap icon equivalent
-            icon.imageTintList = android.content.res.ColorStateList.valueOf(getColor(R.color.ui_green))
-            btnToggle.setBackgroundResource(R.drawable.bg_toggle_on)
+        findViewById<TextView>(R.id.textServiceStatus).text = if (isRunning) {
+            getString(R.string.status_running_cn)
         } else {
-            iconBg.setBackgroundResource(R.drawable.bg_status_icon_off)
-            icon.setImageResource(android.R.drawable.ic_lock_power_off)
-            icon.imageTintList = android.content.res.ColorStateList.valueOf(getColor(R.color.ui_text_mute))
-            btnToggle.setBackgroundResource(R.drawable.bg_toggle_off)
+            getString(R.string.status_stopped_cn)
+        }
+
+        isUpdatingToggle = true
+        switchOverlay.isChecked = isRunning
+        isUpdatingToggle = false
+
+        val btnToggle = findViewById<Button>(R.id.btnToggleService)
+        if (isRunning) {
+            btnToggle.setBackgroundResource(R.drawable.bg_btn_secondary)
+            btnToggle.text = getString(R.string.action_stop_service)
+            btnToggle.setTextColor(getColor(R.color.ui_text_main))
+        } else {
+            btnToggle.setBackgroundResource(R.drawable.bg_btn_success)
+            btnToggle.text = getString(R.string.action_start_service)
+            btnToggle.setTextColor(getColor(android.R.color.white))
         }
     }
 
@@ -285,7 +292,6 @@ class MainActivity : AppCompatActivity() {
                 OverlayService.start(this)
                 Toast.makeText(this, getString(R.string.msg_starting_service), Toast.LENGTH_SHORT).show()
             }
-            // Delay update to allow service to start/stop
             window.decorView.postDelayed({ updateServiceStatus() }, 500)
             window.decorView.postDelayed({ updateServiceStatus() }, 1500)
         } catch (e: Exception) {

@@ -47,4 +47,19 @@ object AssetLoader {
             return null
         }
     }
+
+    fun assetExists(context: Context, path: String): Boolean {
+        if (path.isBlank()) return false
+        return try {
+            context.assets.open(path).close()
+            true
+        } catch (e: Exception) {
+            try {
+                context.assets.open("$path.base64").close()
+                true
+            } catch (e2: Exception) {
+                false
+            }
+        }
+    }
 }

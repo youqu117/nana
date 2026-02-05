@@ -39,7 +39,8 @@ class PetView @JvmOverloads constructor(
     init {
         imageView.setImageResource(normalRes)
         imageView.adjustViewBounds = true
-        imageView.scaleType = ImageView.ScaleType.FIT_CENTER
+        imageView.scaleType = ImageView.ScaleType.CENTER_INSIDE
+        imageView.setFilterBitmap(false)
         addView(imageView, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT))
         clipChildren = false
         clipToPadding = false
@@ -165,16 +166,20 @@ class PetView @JvmOverloads constructor(
     }
     
     private fun loadBitmapFromAsset(path: String): Bitmap? {
+        val options = BitmapFactory.Options().apply {
+            inScaled = false
+            inPreferredConfig = Bitmap.Config.ARGB_8888
+        }
         // Try direct path first
         try {
-            return context.assets.open(path).use { BitmapFactory.decodeStream(it) }
+            return context.assets.open(path).use { BitmapFactory.decodeStream(it, null, options) }
         } catch (e: Exception) {
             // Try appending .base64 (Development artifact support)
             try {
                 val b64Path = "$path.base64"
                 val b64String = context.assets.open(b64Path).bufferedReader().use { it.readText() }
                 val bytes = Base64.decode(b64String, Base64.DEFAULT)
-                return BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                return BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options)
             } catch (e2: Exception) {
                 // e2.printStackTrace()
             }
@@ -234,5 +239,4 @@ class PetView @JvmOverloads constructor(
         imageView.rotation = 0f
     }
 }
-
 

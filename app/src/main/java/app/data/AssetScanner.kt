@@ -15,6 +15,12 @@ object AssetScanner {
                     // Try to load manifest for each folder in pets/
                     val manifest = AssetLoader.loadManifest(context, folderName)
                     if (manifest != null) {
+                        val hasPreview = AssetLoader.assetExists(context, manifest.preview)
+                        val hasNormal = AssetLoader.assetExists(context, manifest.staticNormal)
+                        val hasIdleSheet = manifest.idleSheet.isBlank() || AssetLoader.assetExists(context, manifest.idleSheet)
+                        if (!hasPreview || !hasNormal || !hasIdleSheet) {
+                            return@mapNotNull null
+                        }
                         PetAssetEntity(
                             id = manifest.id,
                             name = manifest.name,

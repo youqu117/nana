@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/ui_bg_page">
+    android:background="@drawable/bg_stage_gradient">
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
@@ -52,7 +52,7 @@
                     android:id="@+id/textMainTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Nana Pet"
+                    android:text="@string/title_console"
                     android:textSize="24sp"
                     android:textStyle="bold"
                     android:textColor="@color/ui_text_title"
@@ -62,7 +62,7 @@
                     android:id="@+id/textMainSubtitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Level 12 • Tabby Cat"
+                    android:text="@string/label_pet_status"
                     android:textSize="14sp"
                     android:textColor="@color/ui_text_subtitle"
                     android:layout_marginTop="4dp"/>
@@ -106,52 +106,49 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="20dp"
-                    android:gravity="center_vertical">
-                    
-                    <FrameLayout
-                        android:id="@+id/statusIconBg"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:background="@drawable/bg_status_icon_off"
-                        android:layout_marginEnd="12dp">
-                        <ImageView
-                            android:id="@+id/statusIcon"
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:layout_gravity="center"
-                            android:src="@android:drawable/ic_lock_power_off"
-                            app:tint="@color/ui_text_mute"/>
-                    </FrameLayout>
+                    android:orientation="vertical"
+                    android:padding="20dp">
 
                     <LinearLayout
-                        android:layout_width="0dp"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
                         <TextView
-                            android:layout_width="wrap_content"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:text="桌面悬浮窗"
+                            android:layout_weight="1"
+                            android:text="@string/label_desktop_overlay_cn"
                             android:textStyle="bold"
                             android:textColor="@color/ui_text_main"
                             android:textSize="16sp"/>
-                        <TextView
-                            android:id="@+id/textServiceStatus"
+                        <com.google.android.material.switchmaterial.SwitchMaterial
+                            android:id="@+id/switchOverlay"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="状态：已关闭"
-                            android:textColor="@color/ui_text_mute"
-                            android:textSize="12sp"/>
+                            app:thumbTint="@color/ui_bg_card"
+                            app:trackTint="@color/ui_green_light"/>
                     </LinearLayout>
 
-                    <!-- Custom Toggle Logic (Using a Button for simplicity in demo) -->
+                    <TextView
+                        android:id="@+id/textServiceStatus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/status_stopped_cn"
+                        android:textColor="@color/ui_text_mute"
+                        android:textSize="12sp"
+                        android:layout_marginTop="6dp"/>
+
                     <Button
                         android:id="@+id/btnToggleService"
-                        android:layout_width="48dp"
-                        android:layout_height="28dp"
-                        android:background="@drawable/bg_toggle_off"
+                        android:layout_width="match_parent"
+                        android:layout_height="44dp"
+                        android:layout_marginTop="12dp"
+                        android:background="@drawable/bg_btn_success"
+                        android:text="@string/action_start_service"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="@android:color/white"
                         app:backgroundTint="@null"/>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
@@ -160,7 +157,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="我的伙伴"
+                android:text="@string/label_my_pets_cn"
                 android:textStyle="bold"
                 android:textColor="@color/ui_text_main"
                 android:textSize="18sp"
@@ -184,14 +181,14 @@
                     android:layout_width="0dp"
                     android:layout_weight="1"
                     android:layout_height="wrap_content"
-                    android:text="伙伴中心"
+                    android:text="@string/label_adopt_cn"
                     android:textStyle="bold"
                     android:textColor="@color/ui_text_main"
                     android:textSize="16sp"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="全部 (24)"
+                    android:text="@string/label_all_pets_count"
                     android:textColor="@color/ui_text_mute"
                     android:textSize="12sp"/>
             </LinearLayout>
