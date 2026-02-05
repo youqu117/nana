@@ -1,14 +1,19 @@
 {
   "id": "cat_orange",
-  "name": "橘猫",
+  "name": "Cat Orange",
   "version": 1,
   "preview": "pets/cat_orange/preview.png",
   "static_normal": "pets/cat_orange/static/pet_normal.png",
-  "static_tongue": "pets/cat_orange/static/pet_tongue.png",
+  "static_tongue": "pets/cat_orange/static/pet_normal.png",
   "idle_sheet": "pets/cat_orange/anim/idle/sheet.png",
   "idle_anim": "pets/cat_orange/anim/idle/anim.json",
   "default_scale": 3,
-  "hitbox": { "x": 8, "y": 10, "w": 32, "h": 30 },
+  "hitbox": {
+    "x": 8,
+    "y": 8,
+    "w": 32,
+    "h": 32
+  },
   "anchors": {
     "root_x": 24,
     "root_y": 40,

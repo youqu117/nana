@@ -31,7 +31,9 @@ data class PetInstanceEntity(
     val adoptionTime: Long = System.currentTimeMillis(),
     val energy: Int = 80,
     val mood: Int = 0,
-    val affection: Int = 0
+    val affection: Int = 0,
+    // Offline Calculation
+    val lastTickTime: Long = System.currentTimeMillis()
 )
 
 @Entity(tableName = "global_settings")

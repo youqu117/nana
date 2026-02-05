@@ -83,6 +83,25 @@ class OverlayWindowManager(
         petView.setOnTouchListener(gestureHandler)
         
         scope.launch {
+            // Observe Global Settings
+            launch {
+                repository.getSetting("scale").collect { scaleStr ->
+                    val scale = scaleStr?.toFloatOrNull() ?: 1.5f
+                    petView.scaleX = scale
+                    petView.scaleY = scale
+                }
+            }
+            
+            launch {
+                repository.getSetting("alpha").collect { alphaStr ->
+                    val alpha = alphaStr?.toFloatOrNull() ?: 1.0f
+                    layoutParams.alpha = alpha.coerceIn(0.1f, 1.0f)
+                    if (isShowing && petView.parent != null) {
+                        windowManager.updateViewLayout(petView, layoutParams)
+                    }
+                }
+            }
+
             repository.enabledInstances.collect { instances ->
                 if (instances.isNotEmpty()) {
                     val newEntity = instances.first()
@@ -104,9 +123,11 @@ class OverlayWindowManager(
                             energy = newEntity.energy,
                             mood = newEntity.mood,
                             affection = newEntity.affection,
-                            lastTickMs = System.currentTimeMillis()
+                            lastTickMs = newEntity.lastTickTime
                         )
-                        petRuntime?.restoreState(loadedState)
+                        // Perform offline calculation immediately upon restore
+                        val caughtUpState = loadedState.tick(System.currentTimeMillis())
+                        petRuntime?.restoreState(caughtUpState)
                     }
                     
                     currentEntity = newEntity
@@ -138,10 +159,67 @@ class OverlayWindowManager(
         val updated = entity.copy(
             energy = s.energy,
             mood = s.mood,
-            affection = s.affection
+            affection = s.affection,
+            lastTickTime = s.lastTickMs
         )
         scope.launch {
             repository.updateInstance(updated)
+        }
+    }
+
+    private fun startLoop() {
+        handler.post(loopRunnable)
+    }
+
+    private fun stopLoop() {
+        handler.removeCallbacks(loopRunnable)
+    }
+
+    // --- Movement Logic ---
+    
+    // Smooth easing function: ease-in-out cubic
+    private fun easeInOutCubic(t: Float): Float {
+        return if (t < 0.5f) 4 * t * t * t else 1 - Math.pow((-2 * t + 2).toDouble(), 3.0).toFloat() / 2
+    }
+
+    private var targetX = 0
+    private var startX = 0
+    private var moveStartTime = 0L
+    private var moveDuration = 0L
+    private var isMovingToTarget = false
+
+    private fun pickNewTarget() {
+        val screenSize = getScreenSize()
+        val viewWidth = petView.width
+        if (viewWidth == 0) return
+        
+        // Target Sampling: Edge band (0~120px from edges)
+        val edgeBand = 120
+        val isLeft = kotlin.random.Random.nextBoolean()
+        
+        val randomOffset = kotlin.random.Random.nextInt(0, edgeBand)
+        val destX = if (isLeft) {
+            EDGE_PADDING_PX + randomOffset
+        } else {
+            screenSize.x - viewWidth - EDGE_PADDING_PX - randomOffset
+        }
+        
+        targetX = destX.coerceIn(EDGE_PADDING_PX, screenSize.x - viewWidth - EDGE_PADDING_PX)
+        startX = layoutParams.x
+        moveStartTime = System.currentTimeMillis()
+        
+        // Duration based on distance (speed = ~300px/s)
+        val distance = kotlin.math.abs(targetX - startX)
+        moveDuration = (distance * 3).toLong().coerceAtLeast(1000L) // Min 1s
+        isMovingToTarget = true
+        
+        // Face direction
+        if (targetX > startX) {
+            moveDirectionX = 1
+            petView.scaleX = -petView.scaleY // Flip (assuming sprite faces left by default)
+        } else {
+            moveDirectionX = -1
+            petView.scaleX = petView.scaleY
         }
     }
 
@@ -164,40 +242,35 @@ class OverlayWindowManager(
                 return
             }
             
-            if (state.behavior == PetBehavior.WALK) {
-                // Bounce off edges
-                val screenSize = getScreenSize()
-                val nextX = layoutParams.x + (moveDirectionX * moveSpeed)
-                
-                if (nextX <= EDGE_PADDING_PX || nextX + petView.width >= screenSize.x - EDGE_PADDING_PX) {
-                    moveDirectionX *= -1
-                    // Flip view?
-                    // petView.scaleX = moveDirectionX.toFloat() 
+            // Frame Rate Throttling
+            val delay = if (state.behavior == PetBehavior.IDLE || state.behavior == PetBehavior.SLEEP) {
+                83L // ~12 FPS for Idle/Sleep
+            } else {
+                33L // ~30 FPS for Active
+            }
+            
+            if (state.behavior == PetBehavior.WALK || state.behavior == PetBehavior.RUN) {
+                if (!isMovingToTarget) {
+                     pickNewTarget()
                 }
                 
-                moveBy(moveDirectionX * moveSpeed, 0)
-            } else if (state.behavior == PetBehavior.RUN) {
-                 // Faster movement
-                 val screenSize = getScreenSize()
-                 val speed = moveSpeed * 3
-                 val nextX = layoutParams.x + (moveDirectionX * speed)
-                 
-                 if (nextX <= EDGE_PADDING_PX || nextX + petView.width >= screenSize.x - EDGE_PADDING_PX) {
-                     moveDirectionX *= -1
-                 }
-                 moveBy(moveDirectionX * speed, 0)
+                val elapsedMove = now - moveStartTime
+                if (elapsedMove < moveDuration) {
+                    val progress = elapsedMove.toFloat() / moveDuration
+                    val easedProgress = easeInOutCubic(progress)
+                    val currentX = startX + (targetX - startX) * easedProgress
+                    moveTo(currentX.toInt(), layoutParams.y)
+                } else {
+                    // Reached target
+                    isMovingToTarget = false
+                    // Optional: pause or switch to idle handled by Runtime
+                }
+            } else {
+                isMovingToTarget = false // Reset if behavior changes
             }
 
-            handler.postDelayed(this, 33) // ~30 FPS
+            handler.postDelayed(this, delay) 
         }
-    }
-
-    private fun startLoop() {
-        handler.post(loopRunnable)
-    }
-
-    private fun stopLoop() {
-        handler.removeCallbacks(loopRunnable)
     }
 
     fun moveTo(x: Int, y: Int) {

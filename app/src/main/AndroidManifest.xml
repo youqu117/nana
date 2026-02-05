@@ -5,9 +5,9 @@
     <application
         android:allowBackup="true"
         android:label="@string/app_name"
-        android:icon="@drawable/normal"
-        android:roundIcon="@drawable/normal"
-        android:theme="@style/Theme.PixelPet"
+        android:icon="@drawable/ic_pet_preview"
+        android:roundIcon="@drawable/ic_pet_preview"
+        android:theme="@style/AppTheme"
         android:supportsRtl="true">
         <activity
             android:name="app.ui.MainActivity"

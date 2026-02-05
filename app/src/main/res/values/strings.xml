@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">PixelPet</string>
+    <string name="app_name">Nana Pet</string>
+    <string name="title_activity_main">Nana Pet Console</string>
 </resources>

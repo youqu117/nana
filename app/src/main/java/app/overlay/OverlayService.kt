@@ -35,6 +35,14 @@ class OverlayService : Service() {
         overlayWindowManager.show()
     }
 
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent?.action == ACTION_STOP) {
+            stopSelf()
+            return START_NOT_STICKY
+        }
+        return super.onStartCommand(intent, flags, startId)
+    }
+
     override fun onDestroy() {
         isServiceRunning = false
         overlayWindowManager.hide()
@@ -45,6 +53,9 @@ class OverlayService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     private fun buildNotification(): Notification {
+        val stopIntent = Intent(this, OverlayService::class.java).apply { action = ACTION_STOP }
+        val stopPendingIntent = android.app.PendingIntent.getService(this, 0, stopIntent, android.app.PendingIntent.FLAG_IMMUTABLE)
+
         val builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createNotificationChannel()
             Notification.Builder(this, CHANNEL_ID)
@@ -57,6 +68,7 @@ class OverlayService : Service() {
             .setContentTitle(NOTIFICATION_TITLE)
             .setContentText(NOTIFICATION_TEXT)
             .setSmallIcon(android.R.drawable.star_on)
+            .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Exit", stopPendingIntent)
             .build()
     }
 
@@ -77,6 +89,7 @@ class OverlayService : Service() {
         private const val NOTIFICATION_ID = 1001
         private const val NOTIFICATION_TITLE = "桌宠正在运行"
         private const val NOTIFICATION_TEXT = "点击返回应用进行设置"
+        private const val ACTION_STOP = "app.overlay.ACTION_STOP"
 
         var isServiceRunning = false
 

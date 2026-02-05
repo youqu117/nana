@@ -1,78 +1,94 @@
-# 像素桌面桌宠（v0.2 骨架）
+# 像素桌宠 (Pixel Pet) - Android
 
-本仓库提供 Android 桌宠的最小可运行骨架，目标是先完成悬浮、拖拽、点击反馈与简单走动，再逐步扩展状态机、成长与资产系统。
+> **定位**：常驻手机屏幕边缘的像素桌宠（猫/狗为主），支持领养、命名、年龄成长、情绪变化与触摸互动；桌宠在桌面与任意 App 上层自由移动，提供轻量陪伴与收集换装乐趣。
+> **目标**：从“骨架能跑”升级到“可发布、可扩展、可长期迭代”的完整产品形态。
 
-## 目录结构
+---
 
+## 0. 项目概述
+
+### 0.1 一句话
+一款“始终可见、可交互、轻打扰”的像素桌宠：点、拖、双击、长按即可互动；领养后自动计时成长；内容包驱动扩展更多宠物/动作/配饰/主题。
+
+### 0.2 核心特性
+1.  **桌宠始终可见**：系统悬浮窗全局覆盖。
+2.  **强反馈交互**：点击 150ms 内视觉反馈（吐舌头/眨眼/摇尾巴）。
+3.  **养成系统**：领养后自动计时成长（年龄、阶段、解锁动作）。
+4.  **高扩展性**：支持宠物、动作包、配饰、主题扩展。
+
+---
+
+## 1. 核心功能 (MVP)
+
+### 1.1 悬浮桌宠
+*   **移动**：拖拽移动、边缘吸附、自动随机走动（边缘巡航）。
+*   **互动**：
+    *   **Tap (单击)**：触发 Cute 动作（吐舌头/眨眼），0.8s 冷却。
+    *   **DoubleTap (双击)**：触发 Spin 或 Run，2.0s 冷却。
+    *   **LongPress (长按)**：抓起（Held状态），拖拽到边缘吸附（Docked）。
+*   **勿扰**：一键隐藏/显示，支持勿扰模式。
+
+### 1.2 情绪与状态
+*   **Energy (精力)**：影响走动频率与睡觉。
+    *   每 10 分钟 -1 (活跃) / +3 (睡觉)。
+*   **Mood (心情)**：影响表情与动作。
+    *   Energy > 60 时随时间上升，Energy < 20 时下降。
+*   **Affection (亲密度)**：影响互动反馈。
+    *   点击互动增加，每日有上限。
+
+### 1.3 管理面板
+*   **宠物档案**：查看名字、年龄、阶段、状态数值。
+*   **设置**：调节大小 (1.0x-2.5x)、透明度、吸附强度。
+*   **图鉴/商店**：切换宠物（猫/狗），预览动作。
+
+---
+
+## 2. 技术架构
+
+### 2.1 核心组件
+*   **OverlayService**: Android 前台服务，管理 `WindowManager` 悬浮窗。
+*   **PetView**: 自定义 View，负责逐帧动画渲染 (Sprite Sheet) 和触摸事件分发。
+*   **PetRuntime**: 纯 Kotlin 状态机，处理 AI 行为决策 (Idle -> Walk -> Sleep) 和数值计算。
+*   **Room Database**: 本地持久化存储宠物状态、解锁进度。
+
+### 2.2 资产规范 (`assets/pets/`)
+采用 JSON 驱动的资源包结构：
+```text
+assets/
+  pets/
+    cat_orange/
+      manifest.json       # 元数据与配置
+      static/             # 静态兜底图
+      anim/
+        idle/             # 动作文件夹
+          sheet.png       # 序列帧大图
+          anim.json       # 动画帧定义
+        walk/
+        ...
 ```
-.
-├─ app/
-│  └─ src/main/
-│     ├─ java/           # Kotlin 源码（悬浮层/输入/宠物渲染）
-│     ├─ res/            # 资源（当前为矢量占位图）
-│     └─ assets/         # 素材包（base64 占位 + 配置）
-└─ docs/
-   ├─ guides/
-   │  └─ USAGE.md         # 使用说明（v0.2）
-   └─ plan/
-      └─ PRODUCT_PLAN.md  # 产品/技术规格文档（含 anim.json 规范）
-```
 
-## 快速开始
+---
 
-1. 用 Android Studio 打开工程（或通过命令行构建 APK）。
-2. 安装到 Android 设备并运行应用。
-3. 授予悬浮窗权限。
-4. 在首页点击“启动桌宠”。
+## 3. 开发环境
+*   **IDE**: Android Studio
+*   **Language**: Kotlin
+*   **Gradle**: 8.5 (JDK 21 Support)
+*   **Min SDK**: 24 (Android 7.0)
+*   **Target SDK**: 34 (Android 14)
 
-详细使用步骤请见：`docs/guides/USAGE.md`。
+---
 
-## 安装与打包说明（手机软件）
+## 4. 交互指南
+| 手势 | 触发条件 | 效果 |
+|---|---|---|
+| **Tap** | 冷却结束 | 随机卖萌动作 (Cute) |
+| **DoubleTap** | 冷却结束 | 强动作 (Spin/Run) |
+| **LongPress** | >350ms | 抓起 (Held) |
+| **Drag** | Held状态 | 跟随手指，松手吸附 |
 
-本项目是 Android 应用源码，**不能直接把仓库解压到手机使用**。需要先打包成 APK：
+---
 
-### 方法一：Android Studio（推荐）
-
-1. 用 Android Studio 打开项目。
-2. 等待 Gradle 同步完成。
-3. 选择 `Build > Build Bundle(s) / APK(s) > Build APK(s)`。
-4. 生成的 APK 在 `app/build/outputs/apk/`。
-5. 把 APK 安装到手机（或用 Android Studio 直接 Run）。
-
-### 方法二：命令行（CI/自动化）
-
-```bash
-# Debug 版
-./gradlew assembleDebug
-
-# Release 版（需签名配置）
-./gradlew assembleRelease
-```
-
-> Release 包需要签名，通常在 `gradle.properties` 或 `keystore` 配置中设置。
-
-### 是否还有别的方法？
-
-可以通过 CI/CD（如 GitHub Actions）自动构建 APK，再下载安装到手机。
-
-## 功能简介（v0.2 骨架）
-
-- 悬浮窗显示：桌面与任意 App 上层显示桌宠。
-- 交互：支持拖拽移动、边缘吸附、点击反馈。
-- 简单自动走动：在屏幕边缘区域内轻量移动。
-- 基础内容边界：素材与核心逻辑拆分，可后续热更新内容包。
-- 轻量状态模型：预留能量/情绪/亲密度等基础指标。
-
-## 资源说明
-
-当前占位图为 `app/src/main/res/drawable/normal.xml` 与 `app/src/main/res/drawable/tongue.xml`。
-如需替换为自定义素材，请保持同名文件并更新为你的资源。
-
-素材包以 base64 文本形式存放在 `app/src/main/assets/`，打包时会自动完成 PNG 生成与校验，
-无需手动执行命令（已由 `tools/prepare_assets.py` 统一处理）。
-
-## 文档入口
-
-- 使用说明：`docs/guides/USAGE.md`
-- 产品规格与落地方案：`docs/plan/PRODUCT_PLAN.md`
-- 预设素材包说明：`assets/README.md`
+## 5. 版本计划
+*   **V1.0 (MVP)**: 核心交互、基础养成、猫/狗资源。
+*   **V1.1**: 换装系统、多宠同屏。
+*   **V1.2**: iOS 组件支持 (Live Activities)。

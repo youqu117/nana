@@ -1,0 +1,254 @@
+[
+  {
+    "file": "dog_black_static.png",
+    "animal": "dog",
+    "color": "black",
+    "type": "static",
+    "description": "black dog static image"
+  },
+  {
+    "file": "dog_black_idle_sheet.png",
+    "animal": "dog",
+    "color": "black",
+    "type": "idle_sheet",
+    "description": "black dog idle animation sheet (4 frames)"
+  },
+  {
+    "file": "dog_white_static.png",
+    "animal": "dog",
+    "color": "white",
+    "type": "static",
+    "description": "white dog static image"
+  },
+  {
+    "file": "dog_white_idle_sheet.png",
+    "animal": "dog",
+    "color": "white",
+    "type": "idle_sheet",
+    "description": "white dog idle animation sheet (4 frames)"
+  },
+  {
+    "file": "dog_brown_static.png",
+    "animal": "dog",
+    "color": "brown",
+    "type": "static",
+    "description": "brown dog static image"
+  },
+  {
+    "file": "dog_brown_idle_sheet.png",
+    "animal": "dog",
+    "color": "brown",
+    "type": "idle_sheet",
+    "description": "brown dog idle animation sheet (4 frames)"
+  },
+  {
+    "file": "dog_golden_static.png",
+    "animal": "dog",
+    "color": "golden",
+    "type": "static",
+    "description": "golden dog static image"
+  },
+  {
+    "file": "dog_golden_idle_sheet.png",
+    "animal": "dog",
+    "color": "golden",
+    "type": "idle_sheet",
+    "description": "golden dog idle animation sheet (4 frames)"
+  },
+  {
+    "file": "dog_grey_static.png",
+    "animal": "dog",
+    "color": "grey",
+    "type": "static",
+    "description": "grey dog static image"
+  },
+  {
+    "file": "dog_grey_idle_sheet.png",
+    "animal": "dog",
+    "color": "grey",
+    "type": "idle_sheet",
+    "description": "grey dog idle animation sheet (4 frames)"
+  },
+  {
+    "file": "cat_black_static.png",
+    "animal": "cat",
+    "color": "black",
+    "type": "static",
+    "description": "black cat static image"
+  },
+  {
+    "file": "cat_black_idle_sheet.png",
+    "animal": "cat",
+    "color": "black",
+    "type": "idle_sheet",
+    "description": "black cat idle animation sheet (4 frames)"
+  },
+  {
+    "file": "cat_white_static.png",
+    "animal": "cat",
+    "color": "white",
+    "type": "static",
+    "description": "white cat static image"
+  },
+  {
+    "file": "cat_white_idle_sheet.png",
+    "animal": "cat",
+    "color": "white",
+    "type": "idle_sheet",
+    "description": "white cat idle animation sheet (4 frames)"
+  },
+  {
+    "file": "cat_brown_static.png",
+    "animal": "cat",
+    "color": "brown",
+    "type": "static",
+    "description": "brown cat static image"
+  },
+  {
+    "file": "cat_brown_idle_sheet.png",
+    "animal": "cat",
+    "color": "brown",
+    "type": "idle_sheet",
+    "description": "brown cat idle animation sheet (4 frames)"
+  },
+  {
+    "file": "cat_grey_static.png",
+    "animal": "cat",
+    "color": "grey",
+    "type": "static",
+    "description": "grey cat static image"
+  },
+  {
+    "file": "cat_grey_idle_sheet.png",
+    "animal": "cat",
+    "color": "grey",
+    "type": "idle_sheet",
+    "description": "grey cat idle animation sheet (4 frames)"
+  },
+  {
+    "file": "cat_cream_static.png",
+    "animal": "cat",
+    "color": "cream",
+    "type": "static",
+    "description": "cream cat static image"
+  },
+  {
+    "file": "cat_cream_idle_sheet.png",
+    "animal": "cat",
+    "color": "cream",
+    "type": "idle_sheet",
+    "description": "cream cat idle animation sheet (4 frames)"
+  },
+  {
+    "file": "turtle_static.png",
+    "animal": "turtle",
+    "color": "default",
+    "type": "static",
+    "description": "turtle static image"
+  },
+  {
+    "file": "turtle_idle_sheet.png",
+    "animal": "turtle",
+    "color": "default",
+    "type": "idle_sheet",
+    "description": "turtle idle animation sheet (4 frames)"
+  },
+  {
+    "file": "spider_static.png",
+    "animal": "spider",
+    "color": "default",
+    "type": "static",
+    "description": "spider static image"
+  },
+  {
+    "file": "spider_idle_sheet.png",
+    "animal": "spider",
+    "color": "default",
+    "type": "idle_sheet",
+    "description": "spider idle animation sheet (4 frames)"
+  },
+  {
+    "file": "penguin_chick_static.png",
+    "animal": "penguin_chick",
+    "color": "default",
+    "type": "static",
+    "description": "penguin_chick static image"
+  },
+  {
+    "file": "penguin_chick_idle_sheet.png",
+    "animal": "penguin_chick",
+    "color": "default",
+    "type": "idle_sheet",
+    "description": "penguin_chick idle animation sheet (4 frames)"
+  },
+  {
+    "file": "hamster_static.png",
+    "animal": "hamster",
+    "color": "default",
+    "type": "static",
+    "description": "hamster static image"
+  },
+  {
+    "file": "hamster_idle_sheet.png",
+    "animal": "hamster",
+    "color": "default",
+    "type": "idle_sheet",
+    "description": "hamster idle animation sheet (4 frames)"
+  },
+  {
+    "file": "rabbit_static.png",
+    "animal": "rabbit",
+    "color": "default",
+    "type": "static",
+    "description": "rabbit static image"
+  },
+  {
+    "file": "rabbit_idle_sheet.png",
+    "animal": "rabbit",
+    "color": "default",
+    "type": "idle_sheet",
+    "description": "rabbit idle animation sheet (4 frames)"
+  },
+  {
+    "file": "dog_red_static.png",
+    "animal": "dog",
+    "color": "red",
+    "type": "static",
+    "description": "red dog static image"
+  },
+  {
+    "file": "dog_red_idle_sheet.png",
+    "animal": "dog",
+    "color": "red",
+    "type": "idle_sheet",
+    "description": "red dog idle animation sheet (4 frames)"
+  },
+  {
+    "file": "dog_blue_static.png",
+    "animal": "dog",
+    "color": "blue",
+    "type": "static",
+    "description": "blue dog static image"
+  },
+  {
+    "file": "dog_blue_idle_sheet.png",
+    "animal": "dog",
+    "color": "blue",
+    "type": "idle_sheet",
+    "description": "blue dog idle animation sheet (4 frames)"
+  },
+  {
+    "file": "cat_orange_static.png",
+    "animal": "cat",
+    "color": "orange",
+    "type": "static",
+    "description": "orange cat static image"
+  },
+  {
+    "file": "cat_orange_idle_sheet.png",
+    "animal": "cat",
+    "color": "orange",
+    "type": "idle_sheet",
+    "description": "orange cat idle animation sheet (4 frames)"
+  }
+]

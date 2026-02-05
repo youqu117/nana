@@ -1,22 +1,24 @@
 package app.ui
 
-import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.PowerManager
 import android.provider.Settings
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
+import androidx.cardview.widget.CardView
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import app.data.AppDatabase
 import app.data.AssetScanner
+import app.data.PetAssetEntity
 import app.data.PetInstanceEntity
 import app.data.PetRepository
 import app.overlay.OverlayService
@@ -26,248 +28,205 @@ import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
     private lateinit var repository: PetRepository
-    private lateinit var container: LinearLayout
-    private lateinit var statusBar: LinearLayout
-    private lateinit var statusText: TextView
-    private lateinit var serviceToggleButton: Button
-    private lateinit var petListContainer: LinearLayout
+    private lateinit var activeAdapter: ActivePetAdapter
+    private lateinit var assetAdapter: PetGridAdapter
+    private lateinit var textServiceStatus: TextView
+    private lateinit var btnToggleService: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+        
+        // Database Init
         val db = AppDatabase.getDatabase(this)
         repository = PetRepository(db.petDao(), db.settingsDao())
 
-        // Setup UI
-        val scrollView = ScrollView(this).apply {
-            layoutParams = ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
-            )
-            isFillViewport = true
-        }
-
-        container = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(32, 32, 32, 32)
-            setBackgroundColor(Color.parseColor("#F5F5F5"))
-        }
-        scrollView.addView(container)
-        setContentView(scrollView)
-
-        buildHomeConsoleUI()
-
-        // Initialize & Observe Data
+        // UI Setup
+        setupViews()
+        setupAdapters()
+        
+        // Data Observation
         lifecycleScope.launch {
-            // Scan for new assets on startup
             AssetScanner.scanAndPopulate(applicationContext, repository)
             
-            repository.allInstances.collectLatest { instances ->
-                refreshPetList(instances)
+            launch {
+                repository.allInstances.collectLatest { pets ->
+                    activeAdapter.updateData(pets)
+                }
+            }
+            
+            launch {
+                repository.allAssets.collectLatest { assets ->
+                    assetAdapter.updateData(assets)
+                }
             }
         }
     }
 
     override fun onResume() {
         super.onResume()
-        updateStatusBar()
+        updateServiceStatus()
     }
 
-    private fun buildHomeConsoleUI() {
-        // Title
-        val title = TextView(this).apply {
-            text = "Pixel Pet Console"
-            textSize = 24f
-            setTextColor(Color.BLACK)
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply { bottomMargin = 32 }
-        }
-        container.addView(title)
+    private fun setupViews() {
+        // Toolbar
+        setSupportActionBar(findViewById(R.id.toolbar))
+        
+        // Service Control
+        textServiceStatus = findViewById(R.id.textServiceStatus)
+        btnToggleService = findViewById(R.id.btnToggleService)
+        btnToggleService.setOnClickListener { toggleService() }
 
-        // Status Bar
-        statusBar = createCard().apply {
+        updateServiceStatus()
+    }
+    
+    private fun updateServiceStatus() {
+        if (OverlayService.isServiceRunning) {
+            textServiceStatus.text = "Status: Running"
+            textServiceStatus.setTextColor(getColor(R.color.colorPrimary))
+            btnToggleService.text = "Stop Service"
+            btnToggleService.setBackgroundColor(Color.RED)
+        } else {
+            textServiceStatus.text = "Status: Stopped"
+            textServiceStatus.setTextColor(Color.GRAY)
+            btnToggleService.text = "Start Service"
+            btnToggleService.setBackgroundColor(getColor(R.color.colorPrimary))
+        }
+    }
+
+    private fun toggleService() {
+        if (OverlayService.isServiceRunning) {
+            OverlayService.stop(this)
+        } else {
+            if (!Settings.canDrawOverlays(this)) {
+                Toast.makeText(this, "Please grant overlay permission", Toast.LENGTH_LONG).show()
+                startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName")))
+                return
+            }
+            OverlayService.start(this)
+        }
+        // Small delay to allow service to start/stop
+        textServiceStatus.postDelayed({ updateServiceStatus() }, 500)
+    }
+        findViewById<View>(R.id.fabRefresh).setOnClickListener {
+            lifecycleScope.launch {
+                Toast.makeText(this@MainActivity, "Rescanning assets...", Toast.LENGTH_SHORT).show()
+                AssetScanner.scanAndPopulate(applicationContext, repository)
+            }
+        }
+        
+        // Settings Button
+        findViewById<Button>(R.id.btnSettings).setOnClickListener {
+            showSettingsDialog()
+        }
+    }
+
+    private fun showSettingsDialog() {
+        val dialogView = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setOnClickListener {
-                // Handle clicks on status bar to request permissions
-                if (!hasOverlayPermission()) requestOverlayPermission()
-                else if (!isIgnoringBatteryOptimizations()) requestBatteryOptimizations()
+            padding = 50 // px, rough conversion
+            setPadding(40, 40, 40, 40)
+        }
+        
+        // Scale
+        val labelScale = TextView(this).apply { text = "Scale: 1.5x" }
+        val seekScale = SeekBar(this).apply { max = 15; progress = 5 } // 1.0 + (progress/10.0) -> 1.0 to 2.5
+        dialogView.addView(labelScale)
+        dialogView.addView(seekScale)
+        
+        // Alpha
+        val labelAlpha = TextView(this).apply { text = "Opacity: 100%" }
+        val seekAlpha = SeekBar(this).apply { max = 10; progress = 10 } // progress/10.0
+        dialogView.addView(labelAlpha)
+        dialogView.addView(seekAlpha)
+        
+        // Load current values
+        lifecycleScope.launch {
+            repository.getSetting("scale").collectLatest { 
+                val scale = it?.toFloatOrNull() ?: 1.5f
+                seekScale.progress = ((scale - 1.0f) * 10).toInt().coerceIn(0, 15)
+                labelScale.text = "Scale: ${String.format("%.1f", scale)}x"
             }
         }
-        statusText = TextView(this).apply {
-            textSize = 14f
-            setLineSpacing(0f, 1.5f)
-        }
-        statusBar.addView(statusText)
-        container.addView(statusBar)
-
-        // Quick Toggles
-        val quickTogglesCard = createCard().apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            setPadding(24, 16, 24, 16)
+        lifecycleScope.launch {
+             repository.getSetting("alpha").collectLatest {
+                 val alpha = it?.toFloatOrNull() ?: 1.0f
+                 seekAlpha.progress = (alpha * 10).toInt().coerceIn(1, 10)
+                 labelAlpha.text = "Opacity: ${(alpha * 100).toInt()}%"
+             }
         }
 
-        serviceToggleButton = Button(this).apply {
-            text = "启动服务"
-            setOnClickListener { toggleService() }
-            layoutParams = LinearLayout.LayoutParams(
-                0,
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                1f
-            ).apply { marginEnd = 16 }
-        }
-        quickTogglesCard.addView(serviceToggleButton)
+        seekScale.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(p0: SeekBar?, p1: Int, p2: Boolean) {
+                val scale = 1.0f + (p1 / 10.0f)
+                labelScale.text = "Scale: ${String.format("%.1f", scale)}x"
+            }
+            override fun onStartTrackingTouch(p0: SeekBar?) {}
+            override fun onStopTrackingTouch(p0: SeekBar?) {}
+        })
 
-        // Placeholder for other toggles (e.g., Pause All, Lock Pets)
-        val pauseButton = Button(this).apply {
-            text = "暂停所有"
-            isEnabled = false // Not implemented yet
-            layoutParams = LinearLayout.LayoutParams(
-                0,
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                1f
-            )
-        }
-        quickTogglesCard.addView(pauseButton)
-        container.addView(quickTogglesCard)
+        seekAlpha.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(p0: SeekBar?, p1: Int, p2: Boolean) {
+                val alpha = p1 / 10.0f
+                labelAlpha.text = "Opacity: ${(alpha * 100).toInt()}%"
+            }
+            override fun onStartTrackingTouch(p0: SeekBar?) {}
+            override fun onStopTrackingTouch(p0: SeekBar?) {}
+        })
 
-        // Pet List Section
-        val petListLabel = TextView(this).apply {
-            text = "我的桌宠"
-            textSize = 18f
-            setTextColor(Color.DKGRAY)
-            setPadding(0, 32, 0, 16)
-        }
-        container.addView(petListLabel)
-
-        petListContainer = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-        }
-        container.addView(petListContainer)
-
-        val addPetButton = Button(this).apply {
-            text = "+ 领养柴犬 (Shiba)"
-            setOnClickListener {
+        android.app.AlertDialog.Builder(this)
+            .setTitle("Global Settings")
+            .setView(dialogView)
+            .setPositiveButton("Save") { _, _ ->
+                val newScale = 1.0f + (seekScale.progress / 10.0f)
+                val newAlpha = seekAlpha.progress / 10.0f
                 lifecycleScope.launch {
-                    repository.addInstance("dog_shiba", "柴柴 ${System.currentTimeMillis() % 100}")
+                    repository.setSetting("scale", newScale.toString())
+                    repository.setSetting("alpha", newAlpha.toString())
                 }
             }
-        }
-        container.addView(addPetButton)
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
 
-        val addCatButton = Button(this).apply {
-            text = "+ 领养橘猫 (Orange Cat)"
-            setOnClickListener {
+    private fun setupAdapters() {
+        // Active Pets
+        val recyclerActive = findViewById<RecyclerView>(R.id.recyclerActivePets)
+        recyclerActive.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        activeAdapter = ActivePetAdapter(
+            emptyList(),
+            onToggle = { pet -> 
+                lifecycleScope.launch { repository.toggleInstance(pet.copy(isEnabled = !pet.isEnabled)) }
+            },
+            onDelete = { pet ->
+                lifecycleScope.launch { repository.deleteInstance(pet) }
+            }
+        )
+        recyclerActive.adapter = activeAdapter
+
+        // Adoption Grid
+        val recyclerAdoption = findViewById<RecyclerView>(R.id.recyclerAdoption)
+        recyclerAdoption.layoutManager = GridLayoutManager(this, 2)
+        assetAdapter = PetGridAdapter(
+            emptyList(),
+            onAdopt = { asset ->
                 lifecycleScope.launch {
-                    repository.addInstance("cat_orange", "大橘 ${System.currentTimeMillis() % 100}")
+                    repository.addInstance(asset.id, asset.name)
+                    Toast.makeText(this@MainActivity, "Adopted ${asset.name}!", Toast.LENGTH_SHORT).show()
                 }
             }
-        }
-        container.addView(addCatButton)
+        )
+        recyclerAdoption.adapter = assetAdapter
     }
 
-    private fun formatAge(adoptionTime: Long): String {
-        val diff = System.currentTimeMillis() - adoptionTime
-        val days = diff / (1000 * 60 * 60 * 24)
-        return when {
-            days < 7 -> "${days}天 (幼崽)"
-            days < 28 -> "${days / 7}周 (少年)"
-            else -> "${days / 30}月 (成年)"
-        }
-    }
-
-    private fun refreshPetList(instances: List<PetInstanceEntity>) {
-        petListContainer.removeAllViews()
-        if (instances.isEmpty()) {
-            val emptyView = TextView(this).apply {
-                text = "暂无桌宠，点击下方按钮领养"
-                setPadding(16, 16, 16, 16)
-                gravity = Gravity.CENTER
-            }
-            petListContainer.addView(emptyView)
-            return
-        }
-
-        instances.forEach { instance ->
-            val item = createCard().apply {
-                orientation = LinearLayout.VERTICAL
-                setPadding(24, 24, 24, 24)
-            }
-
-            // Header: Name + Switch
-            val header = LinearLayout(this).apply {
-                orientation = LinearLayout.HORIZONTAL
-                gravity = Gravity.CENTER_VERTICAL
-            }
-            val nameText = TextView(this).apply {
-                text = "${instance.name} (${formatAge(instance.adoptionTime)})"
-                textSize = 18f
-                setTypeface(null, android.graphics.Typeface.BOLD)
-                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-            }
-            val toggleBtn = Switch(this).apply {
-                isChecked = instance.isEnabled
-                setOnCheckedChangeListener { _, isChecked ->
-                    lifecycleScope.launch { repository.toggleInstance(instance.copy(isEnabled = isChecked)) }
-                }
-            }
-            header.addView(nameText)
-            header.addView(toggleBtn)
-            item.addView(header)
-
-            // Stats Bars
-            item.addView(createStatBar("Energy", instance.energy, Color.parseColor("#FFC107"))) // Amber
-            item.addView(createStatBar("Mood", instance.mood + 100, Color.parseColor("#03A9F4"), 200)) // Blue, range 0-200
-            item.addView(createStatBar("Affection", instance.affection, Color.parseColor("#E91E63"))) // Pink
-
-            // Delete Button
-            val deleteBtn = Button(this).apply {
-                text = "删除"
-                layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
-                    gravity = Gravity.END
-                    topMargin = 16
-                }
-                setOnClickListener {
-                    lifecycleScope.launch { repository.deleteInstance(instance) }
-                }
-            }
-            item.addView(deleteBtn)
-
-            petListContainer.addView(item)
-        }
-    }
-
-    private fun createStatBar(label: String, value: Int, color: Int, max: Int = 100): LinearLayout {
-        val layout = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            setPadding(0, 8, 0, 8)
-        }
-        val labelView = TextView(this).apply {
-            text = label
-            width = 200
-            textSize = 12f
-        }
-        val progress = ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal).apply {
-            this.max = max
-            this.progress = value
-            progressTintList = android.content.res.ColorStateList.valueOf(color)
-            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-        }
-        layout.addView(labelView)
-        layout.addView(progress)
-        return layout
-    }
-
-
-    private fun updateStatusBar() {
-        val overlayPerm = if (hasOverlayPermission()) "✅ 悬浮窗权限" else "❌ 悬浮窗权限 (点击授予)"
-        val batteryPerm = if (isIgnoringBatteryOptimizations()) "✅ 电池优化已忽略" else "⚠️ 电池优化未忽略 (建议开启)"
-        val serviceState = if (OverlayService.isServiceRunning) "RUNNING" else "STOPPED"
-
-        statusText.text = "$overlayPerm\n$batteryPerm\n后台服务状态: $serviceState"
-        serviceToggleButton.text = if (OverlayService.isServiceRunning) "停止服务" else "启动服务"
+    private fun updateServiceStatus() {
+        val isRunning = OverlayService.isServiceRunning
+        textServiceStatus.text = if (isRunning) "Status: Running" else "Status: Stopped"
+        textServiceStatus.setTextColor(if (isRunning) Color.parseColor("#4CAF50") else Color.parseColor("#E64A19"))
+        btnToggleService.text = if (isRunning) "Stop" else "Start"
+        btnToggleService.backgroundTintList = android.content.res.ColorStateList.valueOf(
+            if (isRunning) Color.parseColor("#E64A19") else Color.parseColor("#4CAF50")
+        )
     }
 
     private fun toggleService() {
@@ -275,30 +234,10 @@ class MainActivity : AppCompatActivity() {
             requestOverlayPermission()
             return
         }
-
-        if (OverlayService.isServiceRunning) {
-            OverlayService.stop(this)
-        } else {
-            OverlayService.start(this)
-        }
-        // Delay slightly to allow service to start/stop
-        container.postDelayed({ updateStatusBar() }, 500)
+        if (OverlayService.isServiceRunning) OverlayService.stop(this) else OverlayService.start(this)
+        // Delay update to allow service to start/stop
+        window.decorView.postDelayed({ updateServiceStatus() }, 500)
     }
-
-    private fun createCard(): LinearLayout {
-        return LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            background = ContextCompat.getDrawable(context, android.R.drawable.dialog_holo_light_frame) // Simple frame
-            setPadding(24, 24, 24, 24)
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply { bottomMargin = 24 }
-            elevation = 4f
-        }
-    }
-
-    // --- Permissions ---
 
     private fun hasOverlayPermission(): Boolean {
         return Build.VERSION.SDK_INT < Build.VERSION_CODES.M || Settings.canDrawOverlays(this)
@@ -306,30 +245,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun requestOverlayPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            val intent = Intent(
-                Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                Uri.parse("package:$packageName")
-            )
+            val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName"))
             startActivity(intent)
-        }
-    }
-
-    private fun isIgnoringBatteryOptimizations(): Boolean {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return true
-        val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
-        return pm.isIgnoringBatteryOptimizations(packageName)
-    }
-
-    private fun requestBatteryOptimizations() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
-                data = Uri.parse("package:$packageName")
-            }
-            try {
-                startActivity(intent)
-            } catch (e: Exception) {
-                Toast.makeText(this, "无法打开电池优化设置", Toast.LENGTH_SHORT).show()
-            }
         }
     }
 }

@@ -1,0 +1,25 @@
+{
+  "id": "dog_grey",
+  "name": "Dog Grey",
+  "version": 1,
+  "preview": "pets/dog_grey/preview.png",
+  "static_normal": "pets/dog_grey/static/pet_normal.png",
+  "static_tongue": "pets/dog_grey/static/pet_normal.png",
+  "idle_sheet": "pets/dog_grey/anim/idle/sheet.png",
+  "idle_anim": "pets/dog_grey/anim/idle/anim.json",
+  "default_scale": 3,
+  "hitbox": {
+    "x": 8,
+    "y": 8,
+    "w": 32,
+    "h": 32
+  },
+  "anchors": {
+    "root_x": 24,
+    "root_y": 40,
+    "head_x": 24,
+    "head_y": 16,
+    "face_x": 24,
+    "face_y": 22
+  }
+}
