@@ -19,7 +19,7 @@
         <FrameLayout
             android:layout_width="72dp"
             android:layout_height="72dp"
-            android:background="@drawable/bg_pet_icon_circle"
+            android:background="@android:color/transparent"
             android:layout_marginBottom="8dp">
             
             <ImageView

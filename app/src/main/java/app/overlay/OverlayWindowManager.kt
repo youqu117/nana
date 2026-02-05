@@ -30,15 +30,16 @@ class OverlayWindowManager(
     private val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
     private val activePets = mutableMapOf<Long, OverlayPetUnit>()
     
-    private var currentScale = 1.5f
+    private var currentScale = 1.0f
     private var currentAlpha = 1.0f
+    private var isVerticalMoveEnabled = false
 
     init {
         scope.launch {
             // Observe Settings
             launch {
                 repository.getSetting("scale").collect { scaleStr ->
-                    currentScale = scaleStr?.toFloatOrNull() ?: 1.5f
+                    currentScale = scaleStr?.toFloatOrNull() ?: 1.0f
                     activePets.values.forEach { it.updateScale(currentScale) }
                 }
             }
@@ -47,6 +48,13 @@ class OverlayWindowManager(
                 repository.getSetting("alpha").collect { alphaStr ->
                     currentAlpha = alphaStr?.toFloatOrNull() ?: 1.0f
                     activePets.values.forEach { it.updateAlpha(currentAlpha) }
+                }
+            }
+
+            launch {
+                repository.getSetting("vertical_move").collect { valStr ->
+                    isVerticalMoveEnabled = valStr?.toBoolean() ?: false
+                    activePets.values.forEach { it.updateVerticalMove(isVerticalMoveEnabled) }
                 }
             }
 
@@ -76,6 +84,7 @@ class OverlayWindowManager(
                 val unit = OverlayPetUnit(context, windowManager, scope, instance, repository)
                 unit.updateScale(currentScale)
                 unit.updateAlpha(currentAlpha)
+                unit.updateVerticalMove(isVerticalMoveEnabled)
                 unit.show()
                 activePets[instance.instanceId] = unit
             }
@@ -107,6 +116,7 @@ private class OverlayPetUnit(
     private val handler = Handler(Looper.getMainLooper())
     
     private var moveDirectionX = 1
+    private var isVerticalMoveEnabled = false
     
     private val layoutParams = WindowManager.LayoutParams(
         WindowManager.LayoutParams.WRAP_CONTENT,
@@ -123,7 +133,7 @@ private class OverlayPetUnit(
         android.graphics.PixelFormat.TRANSLUCENT
     ).apply {
         gravity = Gravity.TOP or Gravity.START
-        x = 100 // Default random pos could be better
+        x = 100 
         y = 300
     }
 
@@ -147,6 +157,9 @@ private class OverlayPetUnit(
     fun updateScale(scale: Float) {
         petView.setDisplayScale(scale)
         petView.setFacingDirection(moveDirectionX)
+        if (isShowing && petView.parent != null) {
+            windowManager.updateViewLayout(petView, layoutParams)
+        }
     }
 
     fun updateAlpha(alpha: Float) {
@@ -155,13 +168,16 @@ private class OverlayPetUnit(
             windowManager.updateViewLayout(petView, layoutParams)
         }
     }
+    
+    fun updateVerticalMove(enabled: Boolean) {
+        isVerticalMoveEnabled = enabled
+    }
 
     fun updateEntity(newInstance: PetInstanceEntity) {
         if (currentEntity.assetId != newInstance.assetId) {
             currentEntity = newInstance
             loadResources()
         } else {
-            // Sync state logic if needed (e.g. forced mood change)
             currentEntity = newInstance
         }
     }
@@ -180,10 +196,12 @@ private class OverlayPetUnit(
                     val loadedState = PetState(
                         energy = currentEntity.energy,
                         mood = currentEntity.mood,
+                        hunger = currentEntity.hunger,
                         affection = currentEntity.affection,
                         lastTickMs = currentEntity.lastTickTime
                     )
-                    val caughtUpState = loadedState.tick(System.currentTimeMillis())
+                    // Catch up logic: Assume resting if loading from disk
+                    val caughtUpState = loadedState.tick(System.currentTimeMillis(), isResting = true)
                     petRuntime?.restoreState(caughtUpState)
                 }
             }
@@ -192,7 +210,6 @@ private class OverlayPetUnit(
 
     fun show() {
         if (isShowing) return
-        // Randomize initial position
         val screenSize = getScreenSize()
         layoutParams.x = kotlin.random.Random.nextInt(EDGE_PADDING_PX, screenSize.x - 200)
         layoutParams.y = kotlin.random.Random.nextInt(200, screenSize.y - 200)
@@ -217,6 +234,7 @@ private class OverlayPetUnit(
         val updated = currentEntity.copy(
             energy = s.energy,
             mood = s.mood,
+            hunger = s.hunger,
             affection = s.affection,
             lastTickTime = s.lastTickMs
         )
@@ -228,7 +246,9 @@ private class OverlayPetUnit(
     // --- Loop & Movement ---
 
     private var targetX = 0
+    private var targetY = 0
     private var startX = 0
+    private var startY = 0
     private var moveStartTime = 0L
     private var moveDuration = 0L
     private var isMovingToTarget = false
@@ -249,28 +269,48 @@ private class OverlayPetUnit(
     private fun pickNewTarget() {
         val screenSize = getScreenSize()
         val viewWidth = petView.width
+        val viewHeight = petView.height
         if (viewWidth == 0) return
         
-        // Random target across screen
+        // Random target
         val maxW = screenSize.x - viewWidth - EDGE_PADDING_PX
         val destX = kotlin.random.Random.nextInt(EDGE_PADDING_PX, max(EDGE_PADDING_PX + 1, maxW))
         
         targetX = destX
         startX = layoutParams.x
+        
+        if (isVerticalMoveEnabled) {
+            val maxH = screenSize.y - viewHeight - EDGE_PADDING_PX
+            val destY = kotlin.random.Random.nextInt(EDGE_PADDING_PX, max(EDGE_PADDING_PX + 1, maxH))
+            targetY = destY
+        } else {
+            targetY = layoutParams.y
+        }
+        startY = layoutParams.y
+        
         moveStartTime = System.currentTimeMillis()
         
-        val distance = kotlin.math.abs(targetX - startX)
-        moveDuration = (distance * 4).toLong().coerceAtLeast(1500L) // Slower movement
+        val dx = targetX - startX
+        val dy = targetY - startY
+        val distance = kotlin.math.sqrt((dx * dx + dy * dy).toDouble()).toFloat()
+        
+        moveDuration = (distance * 4).toLong().coerceAtLeast(1500L)
         isMovingToTarget = true
         
-        // Face direction
-        val scale = kotlin.math.abs(petView.scaleY)
-        if (targetX > startX) {
-            moveDirectionX = 1
-            petView.setFacingDirection(1)
+        // Rotation & Facing
+        if (isVerticalMoveEnabled && kotlin.math.abs(dy) > kotlin.math.abs(dx)) {
+            // Vertical dominant
+            petView.rotation = if (dy > 0) 90f else -90f
+            // Maintain facing for consistency or could flip based on subtle x movement
         } else {
-            moveDirectionX = -1
-            petView.setFacingDirection(-1)
+            petView.rotation = 0f
+            if (dx > 0) {
+                moveDirectionX = 1
+                petView.setFacingDirection(1)
+            } else if (dx < 0) {
+                moveDirectionX = -1
+                petView.setFacingDirection(-1)
+            }
         }
     }
 
@@ -280,7 +320,6 @@ private class OverlayPetUnit(
 
             petController?.update()
             
-            // Auto Save
             val now = System.currentTimeMillis()
             if (now - lastSaveTime > 30000) {
                 lastSaveTime = now
@@ -302,12 +341,15 @@ private class OverlayPetUnit(
                     val progress = elapsed.toFloat() / moveDuration
                     val eased = easeInOutCubic(progress)
                     val cx = startX + (targetX - startX) * eased
-                    moveTo(cx.toInt(), layoutParams.y)
+                    val cy = startY + (targetY - startY) * eased
+                    moveTo(cx.toInt(), cy.toInt())
                 } else {
                     isMovingToTarget = false
+                    petView.rotation = 0f // Reset rotation when stopped
                 }
             } else {
                 isMovingToTarget = false
+                petView.rotation = 0f
             }
 
             handler.postDelayed(this, delay)
@@ -327,9 +369,6 @@ private class OverlayPetUnit(
     }
 
     fun snapToEdge() {
-        // Optional: Desktop pets usually stay on floor, snapping to side might be annoying
-        // but let's keep it if user drags close to edge? 
-        // For now, let's DISABLE automatic snap to edge to allow free placement
     }
 
     private fun clampToScreen(x: Int, y: Int): Pair<Int, Int> {

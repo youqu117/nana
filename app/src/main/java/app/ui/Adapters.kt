@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
@@ -51,7 +52,9 @@ class PetGridAdapter(
 class ActivePetAdapter(
     private var pets: List<PetInstanceEntity>,
     private val onToggle: (PetInstanceEntity) -> Unit,
-    private val onDelete: (PetInstanceEntity) -> Unit
+    private val onDelete: (PetInstanceEntity) -> Unit,
+    private val onRename: (PetInstanceEntity) -> Unit,
+    private val onFeed: (PetInstanceEntity) -> Unit
 ) : RecyclerView.Adapter<ActivePetAdapter.ActiveViewHolder>() {
     private var previewPaths: Map<String, String> = emptyMap()
 
@@ -59,7 +62,9 @@ class ActivePetAdapter(
         val name: TextView = view.findViewById(R.id.textName)
         val preview: ImageView = view.findViewById(R.id.imgActivePetPreview)
         val toggleBtn: Button = view.findViewById(R.id.btnToggle)
-        val deleteBtn: ImageView = view.findViewById(R.id.btnDelete)
+        val deleteBtn: ImageButton = view.findViewById(R.id.btnDelete)
+        val renameBtn: ImageButton = view.findViewById(R.id.btnRename)
+        val feedBtn: ImageButton = view.findViewById(R.id.btnFeed)
         
         val progressEnergy: android.widget.ProgressBar = view.findViewById(R.id.progressEnergy)
         val progressMood: android.widget.ProgressBar = view.findViewById(R.id.progressMood)
@@ -89,8 +94,8 @@ class ActivePetAdapter(
 
         holder.progressEnergy.progress = pet.energy.coerceIn(0, 100)
         holder.progressMood.progress = pet.mood.coerceIn(0, 100)
-        holder.progressHunger.progress = pet.affection.coerceIn(0, 100)
-
+        holder.progressHunger.progress = pet.hunger.coerceIn(0, 100)
+        
         if (pet.isEnabled) {
             holder.toggleBtn.text = holder.itemView.context.getString(R.string.action_pause)
             holder.toggleBtn.setBackgroundResource(R.drawable.bg_btn_primary)
@@ -103,6 +108,8 @@ class ActivePetAdapter(
 
         holder.toggleBtn.setOnClickListener { onToggle(pet) }
         holder.deleteBtn.setOnClickListener { onDelete(pet) }
+        holder.renameBtn.setOnClickListener { onRename(pet) }
+        holder.feedBtn.setOnClickListener { onFeed(pet) }
     }
 
     override fun getItemCount() = pets.size
@@ -122,7 +129,7 @@ private fun loadPreview(context: Context, imageView: ImageView, path: String?) {
             val bitmap = BitmapFactory.decodeStream(stream, null, options)
             if (bitmap != null) {
                 imageView.setImageBitmap(bitmap)
-                imageView.setFilterBitmap(false)
+                (imageView.drawable as? android.graphics.drawable.BitmapDrawable)?.isFilterBitmap = false
                 return
             }
         }
@@ -134,7 +141,7 @@ private fun loadPreview(context: Context, imageView: ImageView, path: String?) {
             val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options)
             if (bitmap != null) {
                 imageView.setImageBitmap(bitmap)
-                imageView.setFilterBitmap(false)
+                (imageView.drawable as? android.graphics.drawable.BitmapDrawable)?.isFilterBitmap = false
                 return
             }
         } catch (e2: Exception) {

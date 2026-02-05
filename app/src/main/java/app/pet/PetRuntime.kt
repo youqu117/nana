@@ -57,6 +57,11 @@ class PetRuntime(
         state = state.withBehavior(PetBehavior.CUTE)
     }
 
+    fun handleFeed() {
+        state = state.applyFeed()
+        state = state.withBehavior(PetBehavior.CUTE) // React to feeding
+    }
+
     fun handleDoubleTap(nowMs: Long) {
         if (nowMs - lastInteractionTime < 2000) return // Cooldown
         lastInteractionTime = nowMs

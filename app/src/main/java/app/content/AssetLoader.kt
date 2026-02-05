@@ -6,10 +6,33 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 
 object AssetLoader {
+    fun openStream(context: Context, path: String): java.io.InputStream {
+        val file = java.io.File(context.filesDir, path)
+        if (file.exists()) {
+            return java.io.FileInputStream(file)
+        }
+        
+        try {
+            return context.assets.open(path)
+        } catch (e: java.io.IOException) {
+            // Try loading base64 encoded asset
+            try {
+                val base64Stream = context.assets.open("$path.base64")
+                val base64String = base64Stream.bufferedReader().use { it.readText() }
+                // Remove potential whitespace/newlines
+                val cleanBase64 = base64String.replace("\\s".toRegex(), "")
+                val decodedBytes = android.util.Base64.decode(cleanBase64, android.util.Base64.DEFAULT)
+                return java.io.ByteArrayInputStream(decodedBytes)
+            } catch (e2: Exception) {
+                throw e
+            }
+        }
+    }
+
     fun loadManifest(context: Context, petId: String): ContentPackManifest? {
         try {
             val path = "pets/$petId/manifest.json"
-            val jsonString = context.assets.open(path).use { stream ->
+            val jsonString = openStream(context, path).use { stream ->
                 BufferedReader(InputStreamReader(stream)).use { it.readText() }
             }
             
@@ -51,11 +74,11 @@ object AssetLoader {
     fun assetExists(context: Context, path: String): Boolean {
         if (path.isBlank()) return false
         return try {
-            context.assets.open(path).close()
+            openStream(context, path).close()
             true
         } catch (e: Exception) {
             try {
-                context.assets.open("$path.base64").close()
+                openStream(context, "$path.base64").close()
                 true
             } catch (e2: Exception) {
                 false

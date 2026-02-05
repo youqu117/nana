@@ -15,6 +15,7 @@ enum class PetBehavior {
 data class PetState(
     val energy: Int = 80,
     val mood: Int = 0,
+    val hunger: Int = 80,
     val affection: Int = 0,
     val lastTickMs: Long = 0L,
     
@@ -22,61 +23,82 @@ data class PetState(
     val behavior: PetBehavior = PetBehavior.IDLE,
     val behaviorStartTime: Long = System.currentTimeMillis()
 ) {
-    fun tick(nowMs: Long): PetState {
+    fun tick(nowMs: Long, isResting: Boolean = false): PetState {
         if (lastTickMs == 0L) return copy(lastTickMs = nowMs)
         
         val elapsed = nowMs - lastTickMs
-        // Check for 10 minute interval (600,000 ms)
+        // Check for 1 minute interval (60,000 ms) for finer granularity
         val minutesPassed = elapsed / (1000 * 60)
         
-        if (minutesPassed < 1) return this // Optimization: don't update too often
+        if (minutesPassed < 1) return this 
         
-        // Energy Logic
-        // Decay 1 every 10 mins if not sleeping
-        // Recover 3 every 10 mins if sleeping
-        val tenMinIntervals = minutesPassed / 10
         var newEnergy = energy
         var newMood = mood
+        var newHunger = hunger
         
-        if (tenMinIntervals >= 1) {
-            val change = if (behavior == PetBehavior.SLEEP) 3 else -1
-            newEnergy = (energy + (change * tenMinIntervals)).toInt().coerceIn(0, 100)
-        }
+        val intervals = minutesPassed.toInt()
 
-        // Mood Logic (based on Energy)
-        // Energy > 60: +1 per 30 mins
-        // Energy < 20: -2 per 30 mins
-        val thirtyMinIntervals = minutesPassed / 30
-        if (thirtyMinIntervals >= 1) {
-            if (newEnergy > 60) {
-                newMood = (newMood + (1 * thirtyMinIntervals)).toInt().coerceAtMost(100) // Cap at +100
-            } else if (newEnergy < 20) {
-                newMood = (newMood - (2 * thirtyMinIntervals)).toInt().coerceAtLeast(-100) // Min -100
+        if (isResting) {
+            // Resting (Home): Recover Energy, Slow Hunger Decay
+            // +1 Energy per 2 mins
+            newEnergy = (energy + (intervals / 2)).coerceIn(0, 100)
+            // -1 Hunger per 20 mins
+            newHunger = (hunger - (intervals / 20)).coerceIn(0, 100)
+            // Mood stable or slight increase
+        } else {
+            // Active: Consume Energy, Hunger Decay
+            // -1 Energy per 5 mins
+            val energyLoss = if (behavior == PetBehavior.SLEEP) -1 else 1
+            if (behavior == PetBehavior.SLEEP) {
+                newEnergy = (energy + (intervals / 5)).coerceIn(0, 100)
+            } else {
+                newEnergy = (energy - (intervals / 5)).coerceIn(0, 100)
+            }
+            
+            // -1 Hunger per 10 mins
+            newHunger = (hunger - (intervals / 10)).coerceIn(0, 100)
+            
+            // Mood Decay if ignored or needs neglected
+            // If Hunger < 30 or Energy < 20, Mood -1 per 5 mins
+            if (newHunger < 30 || newEnergy < 20) {
+                newMood = (mood - (intervals / 5)).coerceAtLeast(0)
             }
         }
         
         return copy(
             energy = newEnergy,
             mood = newMood,
+            hunger = newHunger,
             lastTickMs = nowMs
         )
     }
 
+    fun applyTap(): PetState {
+        // Mood + 5, Energy -1
+        return copy(
+            mood = (mood + 5).coerceIn(0, 100),
+            energy = (energy - 1).coerceIn(0, 100)
+        )
+    }
+    
+    fun applyFeed(): PetState {
+        // Hunger + 20, Mood + 5
+        return copy(
+            hunger = (hunger + 20).coerceIn(0, 100),
+            mood = (mood + 5).coerceIn(0, 100)
+        )
+    }
+
+    fun applyDoubleTap(): PetState {
+        return copy(
+            mood = (mood + 10).coerceIn(0, 100)
+        )
+    }
+
     fun withBehavior(newBehavior: PetBehavior): PetState {
-        if (behavior == newBehavior) return this
         return copy(
             behavior = newBehavior,
             behaviorStartTime = System.currentTimeMillis()
         )
     }
-
-    fun applyTap(): PetState = copy(
-        affection = (affection + 1).coerceIn(0, 100),
-        mood = (mood + 2).coerceIn(-100, 100)
-    )
-    
-    fun applyDoubleTap(): PetState = copy(
-        mood = (mood + 5).coerceIn(-100, 100)
-    )
 }
-

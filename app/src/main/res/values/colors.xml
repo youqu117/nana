@@ -26,6 +26,11 @@
     <color name="ui_sky">#38BDF8</color> <!-- sky-400 -->
     <color name="ui_sky_dark">#0EA5E9</color> <!-- sky-500 -->
     
+    <!-- Missing Colors Fix -->
+    <color name="ui_yellow">#EAB308</color> <!-- yellow-500 -->
+    <color name="ui_pink">#EC4899</color> <!-- pink-500 -->
+    <color name="ui_accent">#F97316</color> <!-- orange-500 -->
+    
     <!-- Legacy Support (keeping for compatibility during refactor) -->
     <color name="bg_cream">#FFF8E7</color>
     <color name="bg_card">#FFFFFF</color>

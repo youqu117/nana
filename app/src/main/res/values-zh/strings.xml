@@ -32,4 +32,10 @@
     <string name="label_opacity">透明度: %d%%</string>
     <string name="action_save">保存</string>
     <string name="action_cancel">取消</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">首页</string>
+    <string name="nav_pets">我的</string>
+    <string name="nav_shop">商店</string>
+    <string name="nav_settings">配置</string>
 </resources>

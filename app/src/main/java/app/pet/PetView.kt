@@ -38,26 +38,39 @@ class PetView @JvmOverloads constructor(
     
     init {
         imageView.setImageResource(normalRes)
-        imageView.adjustViewBounds = true
-        imageView.scaleType = ImageView.ScaleType.CENTER_INSIDE
-        imageView.setFilterBitmap(false)
-        addView(imageView, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT))
+        imageView.setAdjustViewBounds(false)
+        // FIT_CENTER ensures the image scales UP to fill the layout bounds (while maintaining aspect ratio)
+        // CENTER_INSIDE was preventing upscaling when the layout was larger than the image
+        imageView.scaleType = ImageView.ScaleType.FIT_CENTER
+        (imageView.drawable as? android.graphics.drawable.BitmapDrawable)?.isFilterBitmap = false
+        
+        // Use Gravity.CENTER to ensure image stays centered when we square the container
+        val lp = LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT)
+        lp.gravity = android.view.Gravity.CENTER
+        addView(imageView, lp)
+        
         clipChildren = false
         clipToPadding = false
     }
 
-    // Base scale from manifest (defaults to 1.0 if not specified)
+    // Base scale from manifest (defaults to density-dependent value to ensure visibility)
     private var baseScale = 1.0f
-    
-    // External display scale (e.g., from settings)
+
+    // Scale logic:
+    // 1. baseScale comes from manifest (e.g., 3.0 means source pixels are 3x)
+    // 2. displayScale comes from user settings (e.g., 1.5x)
+    // 3. We ALSO apply density scaling so it looks consistent across devices
     private var displayScale = 1.0f
     
     // Facing direction (1 or -1)
     private var facingDirection = 1
     
     fun setDisplayScale(scale: Float) {
-        this.displayScale = scale
-        updateLayoutSize()
+        if (displayScale != scale) {
+            displayScale = scale
+            updateLayoutSize()
+            invalidate() // Force redraw
+        }
     }
     
     fun setFacingDirection(direction: Int) {
@@ -67,13 +80,14 @@ class PetView @JvmOverloads constructor(
     }
 
     private fun updateLayoutSize() {
-        // Calculate total scale
-        val totalScale = baseScale * displayScale
+        // Unified Scale Logic:
+        // Combine Base (Manifest) * User (Settings) * Density (Screen)
+        // We MUST apply density because we load assets with inScaled=false (raw pixels).
+        // Without density, 32px would be tiny (32dp) on high-res screens.
+        val density = context.resources.displayMetrics.density
+        val totalScale = baseScale * displayScale * density
         
-        // We want to scale the ImageView's LAYOUT params, not just visual scale
-        // But ImageView inside FrameLayout needs explicit size to force FrameLayout size change
-        // OR we just use scaleX/Y on the ImageView but ensure FrameLayout is large enough?
-        // Better: Set the ImageView size explicitly based on drawable size * scale
+        // We want to scale the ImageView's LAYOUT params based on this total scale
         
         val drawable = imageView.drawable ?: return
         val w = drawable.intrinsicWidth
@@ -83,9 +97,13 @@ class PetView @JvmOverloads constructor(
         val targetW = (w * totalScale).toInt()
         val targetH = (h * totalScale).toInt()
         
+        // Make the container square to support 90-degree rotation without clipping/layout issues
+        // The image will be centered (FIT_CENTER) within this square box.
+        val maxDim = kotlin.math.max(targetW, targetH)
+        
         val lp = imageView.layoutParams
-        lp.width = targetW
-        lp.height = targetH
+        lp.width = maxDim
+        lp.height = maxDim
         imageView.layoutParams = lp
         
         // Reset scaleX/Y to 1 (except for direction flip)

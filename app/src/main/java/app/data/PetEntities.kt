@@ -27,6 +27,7 @@ data class PetInstanceEntity(
     val adoptionTime: Long = System.currentTimeMillis(),
     val energy: Int = 80,
     val mood: Int = 0,
+    val hunger: Int = 80,
     val affection: Int = 0,
     val lastTickTime: Long = System.currentTimeMillis()
 )

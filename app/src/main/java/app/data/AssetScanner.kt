@@ -9,7 +9,11 @@ object AssetScanner {
     suspend fun scanAndPopulate(context: Context, repository: PetRepository) {
         withContext(Dispatchers.IO) {
             try {
-                val petsList = context.assets.list("pets") ?: return@withContext
+                val assetPets = context.assets.list("pets")?.toList() ?: emptyList()
+                val localPetsDir = java.io.File(context.filesDir, "pets")
+                val localPets = if (localPetsDir.exists()) localPetsDir.list()?.toList() ?: emptyList() else emptyList()
+                
+                val petsList = (assetPets + localPets).distinct()
                 
                 val assets = petsList.mapNotNull { folderName ->
                     // Try to load manifest for each folder in pets/
@@ -35,6 +39,7 @@ object AssetScanner {
                 }
                 
                 if (assets.isNotEmpty()) {
+                    repository.clearAssets() // Clear old assets first
                     repository.insertAllAssets(assets)
                 }
             } catch (e: Exception) {
