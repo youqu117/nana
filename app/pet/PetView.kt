@@ -3,7 +3,7 @@ package app.pet
 import android.content.Context
 import android.widget.FrameLayout
 import android.widget.ImageView
-import app.R
+import com.pixelpet.R
 
 class PetView(context: Context) : FrameLayout(context) {
     private val imageView = ImageView(context)
