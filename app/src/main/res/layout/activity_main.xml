@@ -14,22 +14,33 @@
 
         <com.google.android.material.appbar.CollapsingToolbarLayout
             android:layout_width="match_parent"
-            android:layout_height="200dp"
+            android:layout_height="320dp"
             app:contentScrim="@color/colorPrimary"
             app:layout_scrollFlags="scroll|exitUntilCollapsed">
 
-            <ImageView
+            <!-- Stage Background -->
+            <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:scaleType="centerCrop"
-                android:src="@drawable/ic_pet_preview" 
-                android:alpha="0.8"
-                app:layout_collapseMode="parallax" />
+                android:background="#FFECE0">
                 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="#40000000"/>
+                <!-- Floor/Platform Visual -->
+                <View
+                    android:layout_width="200dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="bottom|center_horizontal"
+                    android:layout_marginBottom="40dp"
+                    android:background="@drawable/bg_stage_platform"
+                    android:alpha="0.3"/>
+                    
+                <!-- The Main Pet Showcase -->
+                <app.pet.PetView
+                    android:id="@+id/showcasePetView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginBottom="20dp"/>
+            </FrameLayout>
 
             <androidx.appcompat.widget.Toolbar
                 android:id="@+id/toolbar"
@@ -59,45 +70,46 @@
                 android:id="@+id/cardService"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="4dp"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="8dp"
                 app:cardBackgroundColor="@color/bg_card"
-                android:layout_marginBottom="24dp">
+                android:layout_marginBottom="32dp">
                 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:padding="16dp">
+                    android:orientation="vertical"
+                    android:padding="24dp">
                     
-                    <LinearLayout
-                        android:layout_width="0dp"
+                    <TextView
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Desktop Overlay"
-                            android:textSize="18sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/text_primary"/>
-                        <TextView
-                            android:id="@+id/textServiceStatus"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Status: Stopped"
-                            android:textSize="14sp"
-                            android:textColor="@color/text_secondary"/>
-                    </LinearLayout>
+                        android:text="Desktop Overlay"
+                        android:textSize="22sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginBottom="8dp"/>
+                        
+                    <TextView
+                        android:id="@+id/textServiceStatus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Status: Stopped"
+                        android:textSize="16sp"
+                        android:textColor="@color/text_secondary"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginBottom="24dp"/>
                     
                     <Button
                         android:id="@+id/btnToggleService"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_width="match_parent"
+                        android:layout_height="64dp"
                         android:text="Start"
-                        android:backgroundTint="@color/colorPrimary"/>
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:backgroundTint="@color/colorPrimary"
+                        app:cornerRadius="16dp"/>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 

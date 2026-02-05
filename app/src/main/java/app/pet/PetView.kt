@@ -11,7 +11,13 @@ import com.pixelpet.R
 import org.json.JSONObject
 import java.io.InputStream
 
-class PetView(context: Context) : FrameLayout(context) {
+import android.util.AttributeSet
+
+class PetView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : FrameLayout(context, attrs, defStyleAttr) {
     private val imageView = ImageView(context)
     private var normalBitmap: Bitmap? = null
     private var tongueBitmap: Bitmap? = null

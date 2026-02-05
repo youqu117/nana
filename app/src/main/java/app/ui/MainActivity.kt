@@ -25,6 +25,8 @@ import app.overlay.OverlayService
 import com.pixelpet.R
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import app.content.AssetLoader
+import app.pet.PetState
 
 class MainActivity : AppCompatActivity() {
     private lateinit var repository: PetRepository
@@ -32,6 +34,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var assetAdapter: PetGridAdapter
     private lateinit var textServiceStatus: TextView
     private lateinit var btnToggleService: Button
+    private lateinit var showcasePetView: app.pet.PetView // Add showcase view
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,6 +55,12 @@ class MainActivity : AppCompatActivity() {
             launch {
                 repository.allInstances.collectLatest { pets ->
                     activeAdapter.updateData(pets)
+                    
+                    // Update Showcase with the first enabled pet (or just first one)
+                    if (pets.isNotEmpty()) {
+                        val activePet = pets.firstOrNull { it.isEnabled } ?: pets.first()
+                        updateShowcase(activePet)
+                    }
                 }
             }
             
@@ -65,6 +74,11 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        // Auto-start if permission was just granted
+        if (hasOverlayPermission() && wasRequestingPermission) {
+            wasRequestingPermission = false
+            toggleService()
+        }
         updateServiceStatus()
     }
 
@@ -72,59 +86,57 @@ class MainActivity : AppCompatActivity() {
         // Toolbar
         setSupportActionBar(findViewById(R.id.toolbar))
         
+        // Showcase View
+        showcasePetView = findViewById(R.id.showcasePetView)
+        showcasePetView.scaleX = 2.0f // Initial larger scale for showcase
+        showcasePetView.scaleY = 2.0f
+        
         // Service Control
         textServiceStatus = findViewById(R.id.textServiceStatus)
         btnToggleService = findViewById(R.id.btnToggleService)
         btnToggleService.setOnClickListener { toggleService() }
 
+        // Initial check
         updateServiceStatus()
-    }
-    
-    private fun updateServiceStatus() {
-        if (OverlayService.isServiceRunning) {
-            textServiceStatus.text = "Status: Running"
-            textServiceStatus.setTextColor(getColor(R.color.colorPrimary))
-            btnToggleService.text = "Stop Service"
-            btnToggleService.setBackgroundColor(Color.RED)
-        } else {
-            textServiceStatus.text = "Status: Stopped"
-            textServiceStatus.setTextColor(Color.GRAY)
-            btnToggleService.text = "Start Service"
-            btnToggleService.setBackgroundColor(getColor(R.color.colorPrimary))
-        }
-    }
 
-    private fun toggleService() {
-        if (OverlayService.isServiceRunning) {
-            OverlayService.stop(this)
-        } else {
-            if (!Settings.canDrawOverlays(this)) {
-                Toast.makeText(this, "Please grant overlay permission", Toast.LENGTH_LONG).show()
-                startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName")))
-                return
-            }
-            OverlayService.start(this)
-        }
-        // Small delay to allow service to start/stop
-        textServiceStatus.postDelayed({ updateServiceStatus() }, 500)
-    }
+        // Refresh Button
         findViewById<View>(R.id.fabRefresh).setOnClickListener {
             lifecycleScope.launch {
                 Toast.makeText(this@MainActivity, "Rescanning assets...", Toast.LENGTH_SHORT).show()
                 AssetScanner.scanAndPopulate(applicationContext, repository)
             }
         }
-        
+
         // Settings Button
         findViewById<Button>(R.id.btnSettings).setOnClickListener {
             showSettingsDialog()
+        }
+    }
+    
+    private var wasRequestingPermission = false
+
+    private fun updateShowcase(instance: PetInstanceEntity) {
+        lifecycleScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            val manifest = AssetLoader.loadManifest(applicationContext, instance.assetId)
+            if (manifest != null) {
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                    showcasePetView.loadAssets(manifest)
+                    // Optional: Reset state to idle
+                    showcasePetView.updateState(PetState())
+                    
+                    // Apply a slightly larger scale than default for showcase visibility
+                    val baseScale = manifest.defaultScale.toFloat()
+                    val showcaseScale = baseScale * 1.5f
+                    showcasePetView.scaleX = showcaseScale
+                    showcasePetView.scaleY = showcaseScale
+                }
+            }
         }
     }
 
     private fun showSettingsDialog() {
         val dialogView = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            padding = 50 // px, rough conversion
             setPadding(40, 40, 40, 40)
         }
         
@@ -231,12 +243,27 @@ class MainActivity : AppCompatActivity() {
 
     private fun toggleService() {
         if (!hasOverlayPermission()) {
+            Toast.makeText(this, "Please grant Overlay permission first", Toast.LENGTH_LONG).show()
+            wasRequestingPermission = true
             requestOverlayPermission()
             return
         }
-        if (OverlayService.isServiceRunning) OverlayService.stop(this) else OverlayService.start(this)
-        // Delay update to allow service to start/stop
-        window.decorView.postDelayed({ updateServiceStatus() }, 500)
+        
+        try {
+            if (OverlayService.isServiceRunning) {
+                OverlayService.stop(this)
+                Toast.makeText(this, "Stopping service...", Toast.LENGTH_SHORT).show()
+            } else {
+                OverlayService.start(this)
+                Toast.makeText(this, "Starting service...", Toast.LENGTH_SHORT).show()
+            }
+            // Delay update to allow service to start/stop
+            window.decorView.postDelayed({ updateServiceStatus() }, 500)
+            window.decorView.postDelayed({ updateServiceStatus() }, 1500)
+        } catch (e: Exception) {
+            Toast.makeText(this, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+            e.printStackTrace()
+        }
     }
 
     private fun hasOverlayPermission(): Boolean {

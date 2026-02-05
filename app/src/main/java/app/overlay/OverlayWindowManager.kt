@@ -108,29 +108,43 @@ class OverlayWindowManager(
                     
                     // 1. Load Assets / Runtime if asset changed
                     if (currentEntity?.assetId != newEntity.assetId || petRuntime == null) {
-                        val manifest = AssetLoader.loadManifest(context, newEntity.assetId)
-                        if (manifest != null) {
-                            petView.loadAssets(manifest)
-                            val rt = PetRuntime(manifest)
-                            petRuntime = rt
-                            petController = PetController(petView, rt)
+                        // Move heavy I/O to IO dispatcher to avoid ANR
+                        launch(kotlinx.coroutines.Dispatchers.IO) {
+                            val manifest = AssetLoader.loadManifest(context, newEntity.assetId)
+                            if (manifest != null) {
+                                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                                    petView.loadAssets(manifest)
+                                    val rt = PetRuntime(manifest)
+                                    petRuntime = rt
+                                    petController = PetController(petView, rt)
+                                    
+                                    // 2. Restore State if instance changed (nested to ensure runtime is ready)
+                                    if (currentEntity?.instanceId != newEntity.instanceId) {
+                                         val loadedState = PetState(
+                                            energy = newEntity.energy,
+                                            mood = newEntity.mood,
+                                            affection = newEntity.affection,
+                                            lastTickMs = newEntity.lastTickTime
+                                        )
+                                        val caughtUpState = loadedState.tick(System.currentTimeMillis())
+                                        petRuntime?.restoreState(caughtUpState)
+                                    }
+                                    currentEntity = newEntity
+                                }
+                            }
                         }
-                    }
-                    
-                    // 2. Restore State if instance changed
-                    if (currentEntity?.instanceId != newEntity.instanceId) {
+                    } else if (currentEntity?.instanceId != newEntity.instanceId) {
+                         // Only state restore if asset is same
                          val loadedState = PetState(
                             energy = newEntity.energy,
                             mood = newEntity.mood,
                             affection = newEntity.affection,
                             lastTickMs = newEntity.lastTickTime
                         )
-                        // Perform offline calculation immediately upon restore
                         val caughtUpState = loadedState.tick(System.currentTimeMillis())
                         petRuntime?.restoreState(caughtUpState)
+                        currentEntity = newEntity
                     }
-                    
-                    currentEntity = newEntity
                 }
             }
         }

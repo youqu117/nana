@@ -22,7 +22,13 @@ class OverlayService : Service() {
     override fun onCreate() {
         super.onCreate()
         isServiceRunning = true
-        startForeground(NOTIFICATION_ID, buildNotification())
+        
+        // Android 14 (SDK 34) requires specifying the service type
+        if (Build.VERSION.SDK_INT >= 34) {
+            startForeground(NOTIFICATION_ID, buildNotification(), android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
+        } else {
+            startForeground(NOTIFICATION_ID, buildNotification())
+        }
         
         val db = AppDatabase.getDatabase(this)
         val repo = PetRepository(db.petDao(), db.settingsDao())
