@@ -4,27 +4,27 @@
     android:viewportWidth="48"
     android:viewportHeight="48">
     <rect
-        android:x="4"
-        android:y="4"
-        android:width="40"
-        android:height="40"
+        android:x="4dp"
+        android:y="4dp"
+        android:width="40dp"
+        android:height="40dp"
         android:fillColor="#FFB74D" />
     <rect
-        android:x="14"
-        android:y="16"
-        android:width="6"
-        android:height="6"
+        android:x="14dp"
+        android:y="16dp"
+        android:width="6dp"
+        android:height="6dp"
         android:fillColor="#5D4037" />
     <rect
-        android:x="28"
-        android:y="16"
-        android:width="6"
-        android:height="6"
+        android:x="28dp"
+        android:y="16dp"
+        android:width="6dp"
+        android:height="6dp"
         android:fillColor="#5D4037" />
     <rect
-        android:x="20"
-        android:y="28"
-        android:width="8"
-        android:height="4"
+        android:x="20dp"
+        android:y="28dp"
+        android:width="8dp"
+        android:height="4dp"
         android:fillColor="#5D4037" />
 </vector>
