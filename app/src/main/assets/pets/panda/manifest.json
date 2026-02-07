@@ -1,0 +1,10 @@
+{
+  "id": "panda",
+  "name": "Panda",
+  "version": 1,
+  "preview": "pets/panda/panda.png",
+  "static_normal": "pets/panda/panda.png",
+  "default_scale": 2,
+  "hitbox": { "x": 16, "y": 16, "w": 64, "h": 64 },
+  "anchors": { "root_x": 48, "root_y": 80 }
+}

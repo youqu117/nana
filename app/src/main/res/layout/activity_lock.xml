@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:background="#000000">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Focus Mode Active"
+        android:textColor="#FFFFFF"
+        android:textSize="24sp"
+        android:textStyle="bold"/>
+
+    <TextView
+        android:id="@+id/tvRemainingTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="00:00"
+        android:textColor="#FFFFFF"
+        android:textSize="64sp"
+        android:fontFamily="sans-serif-black"
+        android:layout_marginTop="24dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Long press button below to Emergency Unlock"
+        android:textColor="#88FFFFFF"
+        android:textSize="14sp"
+        android:layout_marginTop="48dp"
+        android:layout_marginBottom="16dp"/>
+
+    <Button
+        android:id="@+id/btnGiveUp"
+        android:layout_width="200dp"
+        android:layout_height="80dp"
+        android:text="HOLD TO UNLOCK"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:backgroundTint="#33FFFFFF"
+        android:textColor="#FFFFFF"
+        app:strokeColor="#FFFFFF"
+        app:strokeWidth="2dp"
+        app:cornerRadius="40dp"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
+        
+    <ProgressBar
+        android:id="@+id/progressBarUnlock"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="200dp"
+        android:layout_height="4dp"
+        android:layout_marginTop="8dp"
+        android:progressDrawable="@drawable/bg_btn_success"
+        android:max="100"
+        android:progress="0"
+        android:visibility="invisible"/>
+</LinearLayout>

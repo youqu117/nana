@@ -1,0 +1,11 @@
+{
+  "id": "dragon",
+  "name": "Pixel Dragon",
+  "version": 1,
+  "preview": "pets/dragon/dragon.png",
+  "static_normal": "pets/dragon/dragon.png",
+  "static_tongue": "pets/dragon/dragon_fire.png",
+  "default_scale": 2,
+  "hitbox": { "x": 16, "y": 16, "w": 64, "h": 64 },
+  "anchors": { "root_x": 48, "root_y": 80 }
+}

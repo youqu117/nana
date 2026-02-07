@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Full pixel house room: wall + floor + soft vignette -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Back wall -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="linear"
+                android:angle="270"
+                android:startColor="#F7E8D6"
+                android:centerColor="#F2D9C2"
+                android:endColor="#E6C7A8"/>
+        </shape>
+    </item>
+    <!-- Soft vignette to give depth -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="420dp"
+                android:centerX="0.5"
+                android:centerY="0.30"
+                android:startColor="#00FFFFFF"
+                android:endColor="#1A9E7C5A"/>
+        </shape>
+    </item>
+    <!-- Floor (bottom area) -->
+    <item android:top="260dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="linear"
+                android:angle="0"
+                android:startColor="#A5825C"
+                android:centerColor="#8F6E52"
+                android:endColor="#7A5A45"/>
+        </shape>
+    </item>
+    <!-- Floor highlight strip -->
+    <item android:top="260dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="linear"
+                android:angle="270"
+                android:startColor="#22FFFFFF"
+                android:endColor="#00FFFFFF"/>
+        </shape>
+    </item>
+    <!-- Baseboard line -->
+    <item android:top="256dp">
+        <shape android:shape="rectangle">
+            <size android:height="4dp"/>
+            <solid android:color="#D1B49A"/>
+        </shape>
+    </item>
+</layer-list>

@@ -1,0 +1,25 @@
+{
+  "id": "huan_huan",
+  "name": "Huan Huan",
+  "version": 1,
+  "preview": "pets/huan_huan/preview.png",
+  "static_normal": "pets/huan_huan/preview.png",
+  "static_tongue": "pets/huan_huan/preview.png",
+  "idle_sheet": "pets/huan_huan/preview.png",
+  "idle_anim": "pets/huan_huan/anim/idle/anim.json",
+  "default_scale": 1,
+  "hitbox": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+  },
+  "anchors": {
+    "root_x": 24,
+    "root_y": 48,
+    "head_x": 24,
+    "head_y": 10,
+    "face_x": 24,
+    "face_y": 15
+  }
+}

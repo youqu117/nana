@@ -1,94 +1,82 @@
-# 像素桌宠 (Pixel Pet) - Android
+﻿# Nana 像素桌宠（Android）
 
-> **定位**：常驻手机屏幕边缘的像素桌宠（猫/狗为主），支持领养、命名、年龄成长、情绪变化与触摸互动；桌宠在桌面与任意 App 上层自由移动，提供轻量陪伴与收集换装乐趣。
-> **目标**：从“骨架能跑”升级到“可发布、可扩展、可长期迭代”的完整产品形态。
+> 当前版本：`1.1.0`
+> 代码主包：`com.pixelpet`
 
----
+## 项目简介
 
-## 0. 项目概述
+Nana 是一款手机像素桌宠应用，支持：
 
-### 0.1 一句话
-一款“始终可见、可交互、轻打扰”的像素桌宠：点、拖、双击、长按即可互动；领养后自动计时成长；内容包驱动扩展更多宠物/动作/配饰/主题。
+- 桌面/应用上层悬浮显示（Overlay）
+- 宠物领养、命名、喂食、状态成长
+- 小屋互动（音乐、睡觉、问候、唱歌等）
+- 等级成长与情绪反馈
+- FocusLock（专注防沉迷）与 Todo 联动
 
-### 0.2 核心特性
-1.  **桌宠始终可见**：系统悬浮窗全局覆盖。
-2.  **强反馈交互**：点击 150ms 内视觉反馈（吐舌头/眨眼/摇尾巴）。
-3.  **养成系统**：领养后自动计时成长（年龄、阶段、解锁动作）。
-4.  **高扩展性**：支持宠物、动作包、配饰、主题扩展。
+## 当前核心能力
 
----
+1. 多宠物实例管理（商店领养 + 我的宠物管理）
+2. 悬浮桌宠服务（启动/停止、位置与状态保存）
+3. 宠物行为状态机（Idle/Walk/Run/Sleep/Cute 等）
+4. 宠物小屋互动特效（音符、喷火、表情符号）
+5. 自定义资源导入（ZIP / 图片）
+6. FocusLock 专注流程（无障碍拦截、锁屏、Todo）
 
-## 1. 核心功能 (MVP)
+## 代码结构（简版）
 
-### 1.1 悬浮桌宠
-*   **移动**：拖拽移动、边缘吸附、自动随机走动（边缘巡航）。
-*   **互动**：
-    *   **Tap (单击)**：触发 Cute 动作（吐舌头/眨眼），0.8s 冷却。
-    *   **DoubleTap (双击)**：触发 Spin 或 Run，2.0s 冷却。
-    *   **LongPress (长按)**：抓起（Held状态），拖拽到边缘吸附（Docked）。
-*   **勿扰**：一键隐藏/显示，支持勿扰模式。
+- `app/src/main/java/com/pixelpet/ui/main`：主入口与导航
+- `app/src/main/java/com/pixelpet/ui/home`：首页与玩家指引
+- `app/src/main/java/com/pixelpet/ui/pets`：宠物列表/管理
+- `app/src/main/java/com/pixelpet/ui/petroom`：小屋互动
+- `app/src/main/java/com/pixelpet/pet/model`：宠物状态模型
+- `app/src/main/java/com/pixelpet/pet/runtime`：行为与状态机
+- `app/src/main/java/com/pixelpet/pet/interaction`：互动事件（Emote）
+- `app/src/main/java/com/pixelpet/pet/view`：宠物渲染控件
+- `app/src/main/java/com/pixelpet/focuslock`：专注与 Todo 模块
 
-### 1.2 情绪与状态
-*   **Energy (精力)**：影响走动频率与睡觉。
-    *   每 10 分钟 -1 (活跃) / +3 (睡觉)。
-*   **Mood (心情)**：影响表情与动作。
-    *   Energy > 60 时随时间上升，Energy < 20 时下降。
-*   **Affection (亲密度)**：影响互动反馈。
-    *   点击互动增加，每日有上限。
+详细结构请看：`docs/STRUCTURE.md`
 
-### 1.3 管理面板
-*   **宠物档案**：查看名字、年龄、阶段、状态数值。
-*   **设置**：调节大小 (1.0x-2.5x)、透明度、吸附强度。
-*   **图鉴/商店**：切换宠物（猫/狗），预览动作。
+## 资源目录说明
 
----
+- `app/src/main/assets`：运行时有效宠物资源（请勿随意删除）
+- `app/src/main/res/drawable`：UI 与互动特效图标
+- `tools/unused_assets`：备用/下载源素材，不参与运行
 
-## 2. 技术架构
+## 开发与运行
 
-### 2.1 核心组件
-*   **OverlayService**: Android 前台服务，管理 `WindowManager` 悬浮窗。
-*   **PetView**: 自定义 View，负责逐帧动画渲染 (Sprite Sheet) 和触摸事件分发。
-*   **PetRuntime**: 纯 Kotlin 状态机，处理 AI 行为决策 (Idle -> Walk -> Sleep) 和数值计算。
-*   **Room Database**: 本地持久化存储宠物状态、解锁进度。
+### 环境
 
-### 2.2 资产规范 (`assets/pets/`)
-采用 JSON 驱动的资源包结构：
-```text
-assets/
-  pets/
-    cat_orange/
-      manifest.json       # 元数据与配置
-      static/             # 静态兜底图
-      anim/
-        idle/             # 动作文件夹
-          sheet.png       # 序列帧大图
-          anim.json       # 动画帧定义
-        walk/
-        ...
+- Android Studio（建议最新稳定版）
+- JDK 17+
+- Gradle Wrapper（仓库已内置）
+
+### 常用命令
+
+```bash
+./gradlew :app:compileDebugKotlin
+./gradlew :app:assembleDebug
 ```
 
----
+Windows:
 
-## 3. 开发环境
-*   **IDE**: Android Studio
-*   **Language**: Kotlin
-*   **Gradle**: 8.5 (JDK 21 Support)
-*   **Min SDK**: 24 (Android 7.0)
-*   **Target SDK**: 34 (Android 14)
+```powershell
+.\gradlew.bat :app:compileDebugKotlin
+.\gradlew.bat :app:assembleDebug
+```
 
----
+### 运行前权限
 
-## 4. 交互指南
-| 手势 | 触发条件 | 效果 |
-|---|---|---|
-| **Tap** | 冷却结束 | 随机卖萌动作 (Cute) |
-| **DoubleTap** | 冷却结束 | 强动作 (Spin/Run) |
-| **LongPress** | >350ms | 抓起 (Held) |
-| **Drag** | Held状态 | 跟随手指，松手吸附 |
+- 悬浮窗权限（桌宠必需）
+- 无障碍权限（FocusLock 必需）
+- 通知权限（前台服务建议开启）
 
----
+## 文档索引
 
-## 5. 版本计划
-*   **V1.0 (MVP)**: 核心交互、基础养成、猫/狗资源。
-*   **V1.1**: 换装系统、多宠同屏。
-*   **V1.2**: iOS 组件支持 (Live Activities)。
+- 使用说明：`docs/guides/USAGE.md`
+- 架构说明：`docs/STRUCTURE.md`
+- 产品规划：`docs/plan/PRODUCT_PLAN.md`
+- 资源说明：`app/src/main/assets/README.md`
+
+## 说明
+
+当前仓库历史变更较多，部分旧提交曾出现命名/编码混杂问题。现行文档已以 `com.pixelpet` 与 `1.1.0` 实现为准。

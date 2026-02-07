@@ -1,0 +1,15 @@
+Sources:
+- accordion: http://www.clker.com/clipart-accordian.html
+- clarinet: https://openclipart.org/detail/694
+- drums: https://openclipart.org/detail/274
+- flute: https://openclipart.org/detail/8613
+- guitar: https://openclipart.org/detail/10115
+- guitar_electric: https://openclipart.org/detail/4444
+- harp: https://openclipart.org/detail/8464
+- lute: https://openclipart.org/detail/8991
+- oboe: https://openclipart.org/detail/8492
+- piano: http://www.clker.com/clipart-piano.html
+- recorder: https://openclipart.org/detail/3305
+- saxophone: http://www.clker.com/clipart-saxophone.html
+- trumpet: https://openclipart.org/detail/8274
+- violin: https://openclipart.org/detail/4802

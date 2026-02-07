@@ -1,39 +1,29 @@
-<resources>
+﻿<resources>
     <string name="app_name">Nana Pet</string>
-    <string name="title_activity_main">Nana 宠物控制台</string>
-    
-    <!-- UI Labels -->
+    <string name="title_activity_main">Nana Pet 控制台</string>
     <string name="label_desktop_overlay">桌面悬浮窗</string>
-    <string name="status_running">状态: 运行中</string>
-    <string name="status_stopped">状态: 已停止</string>
+    <string name="status_running">状态：运行中</string>
+    <string name="status_stopped">状态：已停止</string>
     <string name="action_start">启动</string>
     <string name="action_stop">停止</string>
-    
     <string name="label_global_settings">全局设置</string>
     <string name="action_configure">配置</string>
-    
     <string name="label_my_pets">我的宠物</string>
     <string name="label_adopt">领养中心</string>
-    
-    <string name="msg_rescanning">正在重新扫描资源...</string>
+    <string name="msg_rescanning">正在重新扫描素材...</string>
     <string name="msg_grant_permission">请先授予悬浮窗权限</string>
     <string name="msg_stopping_service">正在停止服务...</string>
     <string name="msg_starting_service">正在启动服务...</string>
-    <string name="msg_adopted">已领养 %1$s!</string>
-
+    <string name="msg_adopted">已领养 %1$s！</string>
     <string name="notification_title">桌宠正在运行</string>
     <string name="notification_text">点击返回应用进行设置</string>
     <string name="notification_action_exit">退出</string>
     <string name="notification_channel_name">桌宠悬浮服务</string>
-    
-    <!-- Settings Dialog -->
     <string name="dialog_settings_title">全局设置</string>
     <string name="label_scale">缩放: %.1fx</string>
     <string name="label_opacity">透明度: %d%%</string>
     <string name="action_save">保存</string>
     <string name="action_cancel">取消</string>
-
-    <!-- Navigation -->
     <string name="nav_home">首页</string>
     <string name="nav_pets">我的</string>
     <string name="nav_shop">商店</string>

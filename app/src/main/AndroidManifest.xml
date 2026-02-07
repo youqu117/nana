@@ -1,8 +1,9 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+﻿<manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
         android:allowBackup="true"
@@ -11,8 +12,18 @@
         android:roundIcon="@drawable/ic_pet_preview"
         android:theme="@style/AppTheme"
         android:supportsRtl="true">
+
+        <meta-data
+            android:name="preloaded_fonts"
+            android:resource="@array/preloaded_fonts" />
+
         <activity
-            android:name="app.ui.MainActivity"
+            android:name="com.pixelpet.ui.petroom.PetDetailActivity"
+            android:exported="false"
+            android:parentActivityName="com.pixelpet.ui.main.MainActivity"
+            android:theme="@style/AppTheme"/>
+        <activity
+            android:name="com.pixelpet.ui.main.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -21,10 +32,39 @@
         </activity>
 
         <service
-            android:name="app.overlay.OverlayService"
+            android:name="com.pixelpet.overlay.OverlayService"
             android:exported="false"
             android:foregroundServiceType="specialUse">
             <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="overlay_window" />
         </service>
+
+        <!-- FocusLock Components -->
+        <activity android:name="com.pixelpet.focuslock.FocusMainActivity" />
+        <activity android:name="com.pixelpet.focuslock.TodoActivity"
+            android:label="My Tasks"
+            android:parentActivityName="com.pixelpet.focuslock.FocusMainActivity"/>
+        <activity android:name="com.pixelpet.focuslock.LockActivity" 
+                  android:theme="@style/Theme.FocusLock.Fullscreen"
+                  android:excludeFromRecents="true"
+                  android:launchMode="singleTask" />
+
+        <service
+            android:name="com.pixelpet.focuslock.FocusCoreService"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/accessibility_service_config" />
+        </service>
+
+        <receiver android:name="com.pixelpet.focuslock.BootReceiver" android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>
+

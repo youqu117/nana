@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -19,20 +19,33 @@
             android:orientation="vertical"
             android:gravity="center"
             android:paddingTop="40dp"
-            android:paddingBottom="24dp">
+            android:paddingBottom="@dimen/page_padding_top">
+
+            <ImageButton
+                android:id="@+id/cardGuideWindow"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_gravity="end"
+                android:layout_marginEnd="18dp"
+                android:layout_marginBottom="8dp"
+                android:background="@drawable/bg_btn_secondary"
+                android:contentDescription="guide"
+                android:padding="8dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_pixel_settings"
+                app:tint="@color/ui_text_main"/>
 
             <FrameLayout
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
-                
+                android:layout_height="wrap_content"
+                android:padding="8dp">
                 <View
-                    android:layout_width="160dp"
-                    android:layout_height="160dp"
+                    android:layout_width="180dp"
+                    android:layout_height="180dp"
                     android:layout_gravity="center"
-                    android:background="@drawable/bg_stage_platform"
-                    android:alpha="0.2"/>
+                    android:background="@drawable/bg_stage_platform"/>
 
-                <app.pet.PetView
+                <com.pixelpet.pet.view.PetView
                     android:id="@+id/showcasePetView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -46,19 +59,40 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/title_console"
-                android:textSize="24sp"
-                android:textStyle="bold"
-                android:textColor="@color/ui_text_title"
-                android:layout_marginTop="16dp"/>
+                style="@style/TextAppearance.App.PageTitle"
+                android:letterSpacing="0.05"
+                android:layout_marginTop="20dp"/>
 
             <TextView
                 android:id="@+id/textMainSubtitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/label_pet_status"
-                android:textSize="14sp"
-                android:textColor="@color/ui_text_subtitle"
-                android:layout_marginTop="4dp"/>
+                style="@style/TextAppearance.App.Subtitle"
+                android:layout_marginTop="6dp"/>
+
+            <TextView
+                android:id="@+id/textLevelProgress"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_level_badge"
+                android:paddingStart="10dp"
+                android:paddingTop="3dp"
+                android:paddingEnd="10dp"
+                android:paddingBottom="3dp"
+                android:text="成长进度 0%"
+                android:textColor="@color/ui_text_title"
+                android:textSize="12sp"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:id="@+id/textGuideTip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="点右上角 ? 查看玩家指南"
+                style="@style/TextAppearance.App.Caption"/>
         </LinearLayout>
 
         <!-- Controls -->
@@ -66,34 +100,45 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="20dp">
+            android:padding="@dimen/page_padding">
 
             <androidx.cardview.widget.CardView
+                style="@style/CardStyle"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="0dp"
-                app:cardBackgroundColor="@color/ui_bg_card">
+                android:layout_height="wrap_content">
                 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="20dp">
+                    android:padding="@dimen/card_padding">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:gravity="center_vertical">
-                        <TextView
+                        <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="@string/label_desktop_overlay_cn"
-                            android:textStyle="bold"
-                            android:textColor="@color/ui_text_main"
-                            android:textSize="16sp"/>
+                            android:orientation="vertical">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/label_desktop_overlay_cn"
+                                android:textStyle="bold"
+                                android:textColor="@color/ui_text_main"
+                                android:textSize="@dimen/subtitle_text"/>
+                            <TextView
+                                android:id="@+id/textServiceStatus"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/status_stopped_cn"
+                                android:textColor="@color/ui_text_mute"
+                                android:textSize="@dimen/caption_text"
+                                android:layout_marginTop="4dp"/>
+                        </LinearLayout>
                         <com.google.android.material.switchmaterial.SwitchMaterial
                             android:id="@+id/switchOverlay"
                             android:layout_width="wrap_content"
@@ -101,40 +146,65 @@
                             app:thumbTint="@color/ui_bg_card"
                             app:trackTint="@color/ui_green_light"/>
                     </LinearLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
 
-                    <Button
-                        android:id="@+id/btnConfigure"
-                        android:layout_width="match_parent"
+            <!-- Focus Mode Card -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cardFocusLock"
+                style="@style/CardStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/section_spacing"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                >
+                
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:padding="@dimen/card_padding">
+                    
+                    <ImageView
+                        android:layout_width="40dp"
                         android:layout_height="40dp"
-                        android:layout_marginTop="8dp"
-                        android:text="@string/action_configure"
-                        android:textColor="@color/ui_text_main"
-                        android:background="@drawable/bg_btn_secondary"
-                        app:backgroundTint="@null"
-                        android:textSize="14sp"/>
-
-                    <TextView
-                        android:id="@+id/textServiceStatus"
-                        android:layout_width="wrap_content"
+                        android:src="@drawable/ic_pixel_list"
+                        app:tint="@color/colorAccent"/>
+                        
+                    <LinearLayout
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:text="@string/status_stopped_cn"
-                        android:textColor="@color/ui_text_mute"
-                        android:textSize="12sp"
-                        android:layout_marginTop="6dp"/>
-
-                    <Button
-                        android:id="@+id/btnToggleService"
-                        android:layout_width="match_parent"
-                        android:layout_height="44dp"
-                        android:layout_marginTop="12dp"
-                        android:background="@drawable/bg_btn_success"
-                        android:text="@string/action_start_service"
-                        android:textSize="14sp"
-                        android:textStyle="bold"
-                        android:textColor="@android:color/white"
-                        app:backgroundTint="@null"/>
+                        android:layout_weight="1"
+                        android:layout_marginStart="16dp"
+                        android:orientation="vertical">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/focuslock_app_name"
+                            android:textStyle="bold"
+                            android:textColor="@color/ui_text_main"
+                            android:textSize="@dimen/subtitle_text"/>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="专注模式 &amp; 防沉迷"
+                            android:textColor="@color/ui_text_mute"
+                            android:textSize="@dimen/caption_text"
+                            android:layout_marginTop="4dp"/>
+                    </LinearLayout>
+                    
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_nav_shop"
+                        android:rotation="180"
+                        app:tint="@color/ui_text_mute"/>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
         </LinearLayout>
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>
+

@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_todo_page"
+    android:padding="@dimen/page_padding">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/app_title"
+            style="@style/TextAppearance.App.PageTitle"
+            android:layout_marginBottom="24dp"/>
+
+        <androidx.cardview.widget.CardView
+            style="@style/CardStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            >
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/card_padding_small">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/section_permissions"
+                        android:textColor="@color/ui_text_main"
+                        android:textStyle="bold"
+                        android:textSize="@dimen/subtitle_text" />
+
+                    <ImageButton
+                        android:id="@+id/btnTogglePermissions"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:src="@drawable/ic_pixel_list"
+                        android:contentDescription="@string/section_permissions"
+                        android:scaleType="centerInside"
+                        app:tint="@color/ui_text_mute"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/layoutPermissionsContent"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginTop="10dp">
+
+                    <Button
+                        android:id="@+id/btnUsageStats"
+                        android:layout_width="match_parent"
+                        android:layout_height="44dp"
+                        android:layout_marginBottom="6dp"
+                        android:textSize="13sp"
+                        android:text="@string/btn_grant_usage"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        app:strokeColor="@color/colorPrimary"
+                        app:strokeWidth="1dp"
+                        app:cornerRadius="10dp"/>
+
+                    <Button
+                        android:id="@+id/btnAccessibility"
+                        android:layout_width="match_parent"
+                        android:layout_height="44dp"
+                        android:layout_marginBottom="6dp"
+                        android:textSize="13sp"
+                        android:text="@string/btn_grant_accessibility"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        app:strokeColor="@color/colorPrimary"
+                        app:strokeWidth="1dp"
+                        app:cornerRadius="10dp"/>
+
+                    <Button
+                        android:id="@+id/btnOverlay"
+                        android:layout_width="match_parent"
+                        android:layout_height="44dp"
+                        android:textSize="13sp"
+                        android:text="@string/btn_grant_overlay"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        app:strokeColor="@color/colorPrimary"
+                        app:strokeWidth="1dp"
+                        app:cornerRadius="10dp"/>
+
+                    <Button
+                        android:id="@+id/btnAllowedApps"
+                        android:layout_width="match_parent"
+                        android:layout_height="42dp"
+                        android:layout_marginTop="6dp"
+                        android:text="@string/btn_allowed_apps"
+                        android:textSize="12sp"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        app:strokeColor="@color/colorPrimary"
+                        app:strokeWidth="1dp"
+                        app:cornerRadius="10dp"/>
+
+                    <TextView
+                        android:id="@+id/tvAllowedApps"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        style="@style/TextAppearance.App.Caption"
+                        android:text="@string/allowed_apps_hint"/>
+                </LinearLayout>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/section_settings"
+            style="@style/TextAppearance.App.SectionTitle"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/label_task_name"
+            android:layout_marginBottom="4dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="12dp">
+
+            <EditText
+                android:id="@+id/etTaskName"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="@string/hint_task_name"
+                android:inputType="textCapSentences" />
+            
+            <ImageButton
+                android:id="@+id/btnTodoList"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/ic_pixel_list"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:scaleType="centerInside"/>
+        </LinearLayout>
+
+        <EditText
+            android:id="@+id/etDuration"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/hint_duration"
+            android:inputType="number"
+            android:text="30" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="8dp">
+
+            <Button
+                android:id="@+id/btnPreset25"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/btn_25_min" />
+
+            <Button
+                android:id="@+id/btnPreset45"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:text="@string/btn_45_min" />
+
+            <Button
+                android:id="@+id/btnPreset50"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:text="@string/btn_50_min" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btnStartFocus"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/button_height"
+            android:layout_marginTop="32dp"
+            android:text="@string/btn_start_focus"
+            android:textColor="@android:color/white"
+            android:background="@drawable/bg_btn_primary"
+            app:backgroundTint="@null" />
+
+        <TextView
+            android:id="@+id/tvStats"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:gravity="center"
+            android:textColor="@color/ui_text_main"
+            android:text="@string/status_today_summary" />
+
+    </LinearLayout>
+</ScrollView>

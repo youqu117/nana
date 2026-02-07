@@ -3,9 +3,9 @@
   "name": "橘猫",
   "version": 1,
   "preview": "pets/cat_orange/preview.png",
-  "static_normal": "pets/cat_orange/static/pet_normal.png",
-  "static_tongue": "pets/cat_orange/static/pet_tongue.png",
-  "idle_sheet": "pets/cat_orange/anim/idle/sheet.png",
+  "static_normal": "pets/cat_orange/preview.png",
+  "static_tongue": "pets/cat_orange/preview.png",
+  "idle_sheet": "pets/cat_orange/idle_sheet.png",
   "idle_anim": "pets/cat_orange/anim/idle/anim.json",
   "default_scale": 3,
   "hitbox": {

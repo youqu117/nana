@@ -1,24 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Base Colors -->
-    <color name="colorPrimary">#FFAB91</color>
-    <color name="colorPrimaryDark">#E64A19</color>
-    <color name="colorAccent">#FFCCBC</color>
+    <!-- Base Colors - warm & cozy palette -->
+    <color name="colorPrimary">#E8A87C</color>
+    <color name="colorPrimaryDark">#C38D6A</color>
+    <color name="colorAccent">#F7DCB4</color>
     
-    <!-- React UI Colors -->
-    <color name="ui_bg_page">#FFF8E7</color>
+    <!-- UI Backgrounds -->
+    <color name="ui_bg_page">#FFFBF5</color>
     <color name="ui_bg_card">#FFFFFF</color>
-    <color name="ui_bg_accent">#FFF1CC</color>
+    <color name="ui_bg_accent">#FFF4E6</color>
+    <color name="ui_bg_card_elevated">#FFFFFF</color>
     
-    <color name="ui_text_title">#78350F</color> <!-- amber-900 -->
-    <color name="ui_text_subtitle">#B45309</color> <!-- amber-700/60ish -->
-    <color name="ui_text_main">#334155</color> <!-- slate-700 -->
-    <color name="ui_text_mute">#94A3B8</color> <!-- slate-400 -->
+    <!-- Text -->
+    <color name="ui_text_title">#5D4037</color>
+    <color name="ui_text_subtitle">#8D6E63</color>
+    <color name="ui_text_main">#4E342E</color>
+    <color name="ui_text_mute">#A1887F</color>
     
     <!-- Switch / Status -->
     <color name="ui_green">#22C55E</color> <!-- green-500 -->
     <color name="ui_green_light">#DCFCE7</color> <!-- green-100 -->
     <color name="ui_gray_light">#F1F5F9</color> <!-- slate-100 -->
+    <color name="ui_gray_dim">#CBD5E1</color> <!-- slate-300 -->
     <color name="ui_amber">#FBBF24</color> <!-- amber-400 -->
     <color name="ui_amber_light">#FEF3C7</color> <!-- amber-100 -->
     <color name="ui_rose">#FB7185</color> <!-- rose-400 -->

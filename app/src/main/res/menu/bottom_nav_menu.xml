@@ -3,20 +3,17 @@
     <item
         android:id="@+id/nav_home"
         android:title="@string/nav_home"
-        android:icon="@android:drawable/ic_menu_compass"/>
-    
+        android:icon="@drawable/ic_nav_home"/>
     <item
         android:id="@+id/nav_pets"
         android:title="@string/nav_pets"
-        android:icon="@android:drawable/ic_menu_myplaces"/>
-
+        android:icon="@drawable/ic_nav_pets"/>
     <item
         android:id="@+id/nav_shop"
         android:title="@string/nav_shop"
-        android:icon="@android:drawable/ic_menu_gallery"/>
-
+        android:icon="@drawable/ic_nav_shop"/>
     <item
         android:id="@+id/nav_settings"
         android:title="@string/nav_settings"
-        android:icon="@android:drawable/ic_menu_preferences"/>
+        android:icon="@drawable/ic_nav_settings"/>
 </menu>

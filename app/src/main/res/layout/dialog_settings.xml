@@ -1,83 +1,111 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="24dp">
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/settings_scale"
-        android:textSize="16sp"
-        android:textStyle="bold" />
+    android:padding="8dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical">
+        android:orientation="vertical"
+        android:padding="16dp">
 
-        <SeekBar
-            android:id="@+id/seekScale"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:max="100" />
-
+        <!-- 缩放 -->
         <TextView
-            android:id="@+id/textScaleValue"
-            android:layout_width="50dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:gravity="end"
-            android:text="1.0x" />
-    </LinearLayout>
+            android:text="@string/settings_scale"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:textColor="@color/ui_text_main"
+            android:layout_marginBottom="8dp"/>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="@string/settings_alpha"
-        android:textSize="16sp"
-        android:textStyle="bold" />
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical">
-
-        <SeekBar
-            android:id="@+id/seekAlpha"
-            android:layout_width="0dp"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:max="10" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="20dp">
 
+            <SeekBar
+                android:id="@+id/seekScale"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:max="100"
+                android:progressTint="@color/colorPrimary"
+                android:thumbTint="@color/colorPrimary"/>
+
+            <TextView
+                android:id="@+id/textScaleValue"
+                android:layout_width="56dp"
+                android:layout_height="wrap_content"
+                android:gravity="end"
+                android:text="1.0x"
+                android:textSize="15sp"
+                android:textColor="@color/ui_text_main"
+                android:layout_marginStart="16dp"/>
+        </LinearLayout>
+
+        <!-- 透明度 -->
         <TextView
-            android:id="@+id/textAlphaValue"
-            android:layout_width="50dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:gravity="end"
-            android:text="1.0" />
+            android:text="@string/settings_alpha"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:textColor="@color/ui_text_main"
+            android:layout_marginBottom="8dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="20dp">
+
+            <SeekBar
+                android:id="@+id/seekAlpha"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:max="10"
+                android:progressTint="@color/colorPrimary"
+                android:thumbTint="@color/colorPrimary"/>
+
+            <TextView
+                android:id="@+id/textAlphaValue"
+                android:layout_width="56dp"
+                android:layout_height="wrap_content"
+                android:gravity="end"
+                android:text="100%"
+                android:textSize="15sp"
+                android:textColor="@color/ui_text_main"
+                android:layout_marginStart="16dp"/>
+        </LinearLayout>
+
+        <!-- 垂直移动 -->
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/switchVerticalMove"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/settings_vertical_move"
+            android:textSize="15sp"
+            android:textColor="@color/ui_text_main"
+            app:thumbTint="@color/ui_bg_card"
+            app:trackTint="@color/ui_green_light"
+            android:layout_marginBottom="24dp"/>
+
+        <Button
+            android:id="@+id/btnImportPet"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="@string/settings_import_pet"
+            android:textSize="15sp"
+            android:textAllCaps="false"
+            android:background="@drawable/bg_btn_primary"
+            app:backgroundTint="@null"
+            android:textColor="@android:color/white"/>
     </LinearLayout>
-    
-    <Switch
-        android:id="@+id/switchVerticalMove"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="@string/settings_vertical_move"
-        android:textSize="16sp"
-        android:textStyle="bold" />
-
-    <Button
-        android:id="@+id/btnImportPet"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:text="@string/settings_import_pet"
-        android:backgroundTint="?attr/colorPrimary"
-        android:textColor="@android:color/white" />
-
-</LinearLayout>
+</ScrollView>
