@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Pixel-style wooden floor -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#8B7355"/>
+        </shape>
+    </item>
+    <!-- Plank lines for pixel wood look -->
+    <item android:top="40dp">
+        <shape android:shape="rectangle">
+            <size android:height="4dp"/>
+            <solid android:color="#6B5344"/>
+        </shape>
+    </item>
+    <item android:top="70dp">
+        <shape android:shape="rectangle">
+            <size android:height="4dp"/>
+            <solid android:color="#6B5344"/>
+        </shape>
+    </item>
+</layer-list>

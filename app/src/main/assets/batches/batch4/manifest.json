@@ -1,0 +1,58 @@
+[
+  {
+    "file": "77.png",
+    "animal": "qi_qi",
+    "color": "default",
+    "type": "static",
+    "description": "77 static image"
+  },
+  {
+    "file": "77.png",
+    "animal": "qi_qi",
+    "color": "default",
+    "type": "idle_sheet",
+    "description": "77 idle animation (static)"
+  },
+  {
+    "file": "huanhuan.png",
+    "animal": "huan_huan",
+    "color": "default",
+    "type": "static",
+    "description": "HuanHuan static image"
+  },
+  {
+    "file": "huanhuan.png",
+    "animal": "huan_huan",
+    "color": "default",
+    "type": "idle_sheet",
+    "description": "HuanHuan idle animation (static)"
+  },
+  {
+    "file": "lala.png",
+    "animal": "la_la",
+    "color": "default",
+    "type": "static",
+    "description": "LaLa static image"
+  },
+  {
+    "file": "lala.png",
+    "animal": "la_la",
+    "color": "default",
+    "type": "idle_sheet",
+    "description": "LaLa idle animation (static)"
+  },
+  {
+    "file": "youha.png",
+    "animal": "you_ha",
+    "color": "default",
+    "type": "static",
+    "description": "YouHa static image"
+  },
+  {
+    "file": "youha.png",
+    "animal": "you_ha",
+    "color": "default",
+    "type": "idle_sheet",
+    "description": "YouHa idle animation (static)"
+  }
+]

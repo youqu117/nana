@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Wall -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="linear"
+                android:angle="270"
+                android:startColor="#F7E3D0"
+                android:centerColor="#F3D7BC"
+                android:endColor="#E9C8A8"/>
+        </shape>
+    </item>
+    <!-- Wall vignette -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="420dp"
+                android:centerX="0.5"
+                android:centerY="0.35"
+                android:startColor="#00FFFFFF"
+                android:endColor="#1A8E6A4D"/>
+        </shape>
+    </item>
+    <!-- Floor -->
+    <item android:top="210dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="linear"
+                android:angle="0"
+                android:startColor="#A27B56"
+                android:centerColor="#8E6C4F"
+                android:endColor="#7A5A45"/>
+        </shape>
+    </item>
+    <!-- Floor highlight -->
+    <item android:top="210dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="linear"
+                android:angle="270"
+                android:startColor="#22FFFFFF"
+                android:endColor="#00FFFFFF"/>
+        </shape>
+    </item>
+    <!-- Backboard -->
+    <item android:left="64dp" android:right="64dp" android:top="48dp" android:bottom="160dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="10dp"/>
+            <solid android:color="#EFD9C5"/>
+            <stroke android:width="2dp" android:color="#D1B49A"/>
+        </shape>
+    </item>
+</layer-list>

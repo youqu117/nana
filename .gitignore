@@ -14,3 +14,13 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Base64 placeholder files (if not needed in repo)
+*.base64
+
+# Backup directories
+Todo_Backup/
+backup/
+
+# Temporary files
+*.zip

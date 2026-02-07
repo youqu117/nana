@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    style="@style/CardStyle"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="8dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="12dp">
+
+        <ImageView
+            android:id="@+id/ivCheck"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:layout_marginEnd="12dp"
+            android:alpha="0.2"
+            android:background="@drawable/bg_status_icon_off"
+            android:padding="5dp"
+            android:src="@drawable/ic_pixel_check" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvTodoText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Task Item"
+                android:textColor="@color/ui_text_main"
+                android:textSize="@dimen/body_text"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvTodoHint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="@string/todo_item_hint"
+                style="@style/TextAppearance.App.Caption" />
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/ivDelete"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginStart="8dp"
+            android:padding="4dp"
+            android:src="@drawable/ic_pixel_delete"
+            app:tint="@color/ui_rose" />
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

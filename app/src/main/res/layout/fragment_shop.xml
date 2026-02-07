@@ -4,29 +4,30 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@drawable/bg_stage_gradient"
-    android:padding="16dp">
+    android:paddingStart="@dimen/page_padding"
+    android:paddingEnd="@dimen/page_padding"
+    android:paddingTop="@dimen/page_padding_top">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="bottom"
-        android:layout_marginBottom="16dp">
+        android:gravity="center_vertical"
+        android:layout_marginBottom="20dp">
         <TextView
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
             android:text="@string/label_adopt_cn"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:textColor="@color/ui_text_title"/>
+            style="@style/TextAppearance.App.PageTitle"
+            android:letterSpacing="0.02"/>
         <TextView
             android:id="@+id/textAssetsCount"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/label_all_pets_count"
-            android:textColor="@color/ui_text_mute"
-            android:textSize="14sp"/>
+            android:textColor="@color/ui_text_subtitle"
+            android:textSize="@dimen/body_text"/>
     </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
@@ -34,6 +35,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clipToPadding="false"
-        android:paddingBottom="80dp"/>
-
+        android:paddingBottom="@dimen/list_bottom_padding"
+        android:paddingTop="4dp"/>
 </LinearLayout>

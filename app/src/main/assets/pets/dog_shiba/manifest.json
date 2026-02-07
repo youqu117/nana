@@ -3,9 +3,9 @@
   "name": "柴柴",
   "version": 1,
   "preview": "pets/dog_shiba/preview.png",
-  "static_normal": "pets/dog_shiba/static/pet_normal.png",
-  "static_tongue": "pets/dog_shiba/static/pet_tongue.png",
-  "idle_sheet": "pets/dog_shiba/anim/idle/sheet.png",
+  "static_normal": "pets/dog_shiba/preview.png",
+  "static_tongue": "pets/dog_shiba/preview.png",
+  "idle_sheet": "pets/dog_shiba/idle_sheet.png",
   "idle_anim": "pets/dog_shiba/anim/idle/anim.json",
   "default_scale": 3,
   "hitbox": {

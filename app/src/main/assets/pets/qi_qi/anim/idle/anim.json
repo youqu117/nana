@@ -1,0 +1,13 @@
+{
+  "name": "idle",
+  "loop": true,
+  "frames": [
+    {
+      "x": 0,
+      "y": 0,
+      "w": 48,
+      "h": 48,
+      "duration": 1000
+    }
+  ]
+}

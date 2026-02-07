@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="270"
+                android:endColor="#FFEFD9"
+                android:startColor="#FFF9EE" />
+        </shape>
+    </item>
+    <item android:gravity="top|end" android:top="28dp" android:right="24dp">
+        <bitmap
+            android:alpha="0.08"
+            android:src="@drawable/planet_1146246" />
+    </item>
+    <item android:gravity="bottom|start" android:bottom="36dp" android:left="24dp">
+        <bitmap
+            android:alpha="0.08"
+            android:src="@drawable/scholarship_5609483" />
+    </item>
+</layer-list>

@@ -1,0 +1,90 @@
+- generic [active] [ref=e1]:
+  - list
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - link "Zotero" [ref=e5] [cursor=pointer]:
+          - /url: /
+          - img "Zotero" [ref=e6]
+        - navigation [ref=e7]:
+          - list [ref=e8]:
+            - listitem [ref=e9]:
+              - link "Groups" [ref=e10] [cursor=pointer]:
+                - /url: /groups/
+            - listitem [ref=e11]:
+              - link "Documentation" [ref=e12] [cursor=pointer]:
+                - /url: /support/
+            - listitem [ref=e13]:
+              - link "Forums" [ref=e14] [cursor=pointer]:
+                - /url: https://forums.zotero.org/discussions
+            - listitem [ref=e15]:
+              - link "Get Involved" [ref=e16] [cursor=pointer]:
+                - /url: /getinvolved
+            - listitem [ref=e17]:
+              - link "Log In" [ref=e18] [cursor=pointer]:
+                - /url: /user/login/
+            - listitem [ref=e19]:
+              - link "Upgrade Storage" [ref=e20] [cursor=pointer]:
+                - /url: /storage
+    - main [ref=e21]:
+      - generic [ref=e22]:
+        - navigation [ref=e24]:
+          - link "Register for a free account" [ref=e25] [cursor=pointer]:
+            - /url: /user/register
+          - link "Forgot your password?" [ref=e26] [cursor=pointer]:
+            - /url: /user/lostpassword
+        - generic [ref=e29]:
+          - heading "Login" [level=3] [ref=e30]
+          - generic [ref=e31]:
+            - generic [ref=e32]:
+              - generic [ref=e33]: Username or Email
+              - textbox "Username or Email" [ref=e34]
+            - generic [ref=e35]:
+              - generic [ref=e36]: Password
+              - textbox "Password" [ref=e37]
+            - generic [ref=e38]:
+              - checkbox "Remember Me" [ref=e39]
+              - generic [ref=e40]: Remember Me
+              - paragraph [ref=e41]: Keep me signed in
+            - button "Login to Zotero" [ref=e46] [cursor=pointer]
+    - contentinfo [ref=e47]:
+      - generic [ref=e48]:
+        - navigation [ref=e49]:
+          - list [ref=e50]:
+            - listitem [ref=e51]:
+              - link "Documentation" [ref=e52] [cursor=pointer]:
+                - /url: https://www.zotero.org/support/
+            - listitem [ref=e53]:
+              - link "Forums" [ref=e54] [cursor=pointer]:
+                - /url: https://forums.zotero.org
+            - listitem [ref=e55]:
+              - link "Blog" [ref=e56] [cursor=pointer]:
+                - /url: https://www.zotero.org/blog/
+            - listitem [ref=e57]:
+              - link "Privacy" [ref=e58] [cursor=pointer]:
+                - /url: https://www.zotero.org/support/privacy
+            - listitem [ref=e59]:
+              - link "Terms of Service" [ref=e60] [cursor=pointer]:
+                - /url: https://www.zotero.org/support/terms/terms_of_service
+            - listitem [ref=e61]:
+              - link "Get Involved" [ref=e62] [cursor=pointer]:
+                - /url: https://www.zotero.org/getinvolved/
+            - listitem [ref=e63]:
+              - link "Developers" [ref=e64] [cursor=pointer]:
+                - /url: https://www.zotero.org/support/dev/start
+            - listitem [ref=e65]:
+              - link "Jobs" [ref=e66] [cursor=pointer]:
+                - /url: https://www.zotero.org/jobs
+          - list [ref=e67]:
+            - listitem [ref=e68]:
+              - link "Mastodon icon" [ref=e69] [cursor=pointer]:
+                - /url: https://fosstodon.org/@zotero/
+                - img "Mastodon icon" [ref=e70]
+        - paragraph [ref=e72]:
+          - text: Zotero is a project of
+          - link "Digital Scholar" [ref=e73] [cursor=pointer]:
+            - /url: http://digitalscholar.org/
+          - text: ", a nonprofit organization dedicated to the development of software and services for researchers and cultural heritage institutions, and is developed by a"
+          - link "global community" [ref=e74] [cursor=pointer]:
+            - /url: /support/credits_and_acknowledgments
+          - text: .

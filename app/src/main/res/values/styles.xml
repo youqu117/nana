@@ -1,17 +1,126 @@
 <resources>
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
-        <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
-        <item name="android:windowBackground">@color/bg_cream</item>
+        <item name="android:windowBackground">@color/ui_bg_page</item>
         <item name="android:statusBarColor">@color/colorPrimaryDark</item>
+        <item name="android:navigationBarColor">@color/ui_bg_card</item>
+        <item name="android:windowLightStatusBar">true</item>
+
+        <!-- Global default font (Body Text - Readable) -->
+        <item name="android:fontFamily">@font/zcool_kuaile</item>
+        <item name="fontFamily">@font/zcool_kuaile</item>
+
+        <!-- Consistent typography -->
+        <item name="android:textViewStyle">@style/Widget.App.TextView</item>
+        <item name="buttonStyle">@style/Widget.App.Button</item>
     </style>
-    
+
+    <!-- Pixel Style Title (For Headers/Stats) -->
+    <style name="PixelText.Title" parent="Widget.AppCompat.TextView">
+        <item name="android:fontFamily">@font/pixel_font</item>
+        <item name="fontFamily">@font/pixel_font</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:textColor">@color/ui_text_title</item>
+        <item name="android:shadowColor">#40000000</item>
+        <item name="android:shadowDx">4</item>
+        <item name="android:shadowDy">4</item>
+        <item name="android:shadowRadius">0.1</item> <!-- Hard shadow for pixel look -->
+    </style>
+
+    <!-- Pixel Style Value (For Numbers) -->
+    <style name="PixelText.Value" parent="Widget.AppCompat.TextView">
+        <item name="android:fontFamily">@font/pixel_font</item>
+        <item name="fontFamily">@font/pixel_font</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/ui_text_main</item>
+    </style>
+
+    <style name="Widget.App.TextView" parent="Widget.AppCompat.TextView">
+        <item name="android:fontFamily">@font/zcool_kuaile</item>
+        <item name="fontFamily">@font/zcool_kuaile</item>
+        <!-- reduce “floating” baseline differences across fonts -->
+        <item name="android:includeFontPadding">false</item>
+    </style>
+
+    <style name="Widget.App.Button" parent="Widget.AppCompat.Button">
+        <!-- Buttons use Pixel Font now -->
+        <item name="android:fontFamily">@font/pixel_font</item>
+        <item name="fontFamily">@font/pixel_font</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:shadowColor">#40000000</item>
+        <item name="android:shadowDx">2</item>
+        <item name="android:shadowDy">2</item>
+        <item name="android:shadowRadius">0.1</item>
+    </style>
+
+    <style name="TextAppearance.App.BottomNav" parent="TextAppearance.AppCompat.Caption">
+        <item name="android:fontFamily">@font/zcool_kuaile</item>
+        <item name="fontFamily">@font/zcool_kuaile</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:textSize">@dimen/caption_text</item>
+    </style>
+
+    <style name="TextAppearance.App.PageTitle" parent="TextAppearance.AppCompat.Title">
+        <item name="android:fontFamily">@font/zcool_kuaile</item>
+        <item name="fontFamily">@font/zcool_kuaile</item>
+        <item name="android:textSize">@dimen/title_text</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/ui_text_title</item>
+    </style>
+
+    <style name="TextAppearance.App.SectionTitle" parent="TextAppearance.AppCompat.Subhead">
+        <item name="android:fontFamily">@font/zcool_kuaile</item>
+        <item name="fontFamily">@font/zcool_kuaile</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/ui_text_title</item>
+    </style>
+
+    <style name="TextAppearance.App.Subtitle" parent="TextAppearance.AppCompat.Body1">
+        <item name="android:fontFamily">@font/zcool_kuaile</item>
+        <item name="fontFamily">@font/zcool_kuaile</item>
+        <item name="android:textSize">@dimen/subtitle_text</item>
+        <item name="android:textColor">@color/ui_text_subtitle</item>
+    </style>
+
+    <style name="TextAppearance.App.Body" parent="TextAppearance.AppCompat.Body1">
+        <item name="android:fontFamily">@font/zcool_kuaile</item>
+        <item name="fontFamily">@font/zcool_kuaile</item>
+        <item name="android:textSize">@dimen/body_text</item>
+        <item name="android:textColor">@color/ui_text_main</item>
+    </style>
+
+    <style name="TextAppearance.App.Caption" parent="TextAppearance.AppCompat.Caption">
+        <item name="android:fontFamily">@font/zcool_kuaile</item>
+        <item name="fontFamily">@font/zcool_kuaile</item>
+        <item name="android:textSize">@dimen/caption_text</item>
+        <item name="android:textColor">@color/ui_text_mute</item>
+    </style>
+
     <style name="CardStyle">
-        <item name="cardCornerRadius">16dp</item>
-        <item name="cardElevation">4dp</item>
-        <item name="cardBackgroundColor">@color/bg_card</item>
+        <item name="cardCornerRadius">@dimen/card_radius</item>
+        <item name="cardElevation">@dimen/card_elevation</item>
+        <item name="cardBackgroundColor">@color/ui_bg_card</item>
+    </style>
+
+    <!-- FocusLock Themes -->
+    <style name="Theme.FocusLock" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryVariant">@color/colorPrimaryDark</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="colorSecondary">@color/ui_green</item>
+        <item name="colorSecondaryVariant">@color/ui_sky_dark</item>
+        <item name="colorOnSecondary">#000000</item>
+        <item name="android:statusBarColor">@color/colorPrimaryDark</item>
+        <item name="android:windowBackground">@color/ui_bg_page</item>
+    </style>
+
+    <style name="Theme.FocusLock.Fullscreen" parent="Theme.FocusLock">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowContentOverlay">@null</item>
     </style>
 </resources>

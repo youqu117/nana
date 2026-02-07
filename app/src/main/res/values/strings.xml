@@ -1,63 +1,102 @@
-<resources>
-    <string name="app_name">NanaPet</string>
-    <string name="title_activity_main">Nana Pet Console</string>
+﻿<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="zh">
+    <string name="app_name">Nana Pet</string>
     <string name="title_console">Nana Pet 控制台</string>
-    <string name="label_pet_status">Level 12 • Tabby Cat</string>
-    
-    <!-- UI Labels -->
-    <string name="label_desktop_overlay">Desktop Overlay</string>
+    <string name="label_pet_status">LV.1 新手饲养员 · 柴柴</string>
+
     <string name="label_desktop_overlay_cn">悬浮窗</string>
     <string name="status_running_cn">状态：已开启</string>
     <string name="status_stopped_cn">状态：已关闭</string>
-    <string name="action_start_service">开启</string>
-    <string name="action_stop_service">关闭</string>
-    <string name="status_running">Status: Running</string>
-    <string name="status_stopped">Status: Stopped</string>
-    <string name="action_start">START</string>
-    <string name="action_stop">STOP</string>
-    
-    <string name="label_global_settings">Global Settings</string>
-    <string name="action_configure">配置</string>
-    
-    <string name="label_my_pets">My Pets</string>
+
     <string name="label_my_pets_cn">我的桌宠</string>
-    <string name="label_adopt">Adopt a Friend</string>
-    <string name="label_adopt_cn">软件中心</string>
-    <string name="label_all_pets_count">全部</string>
-    
-    <string name="msg_rescanning">Rescanning assets...</string>
-    <string name="msg_grant_permission">Please grant Overlay permission first</string>
-    <string name="msg_stopping_service">Stopping service...</string>
-    <string name="msg_starting_service">Starting service...</string>
-    <string name="msg_adopted">Adopted %1$s!</string>
-    <string name="notification_title">Desktop Pet Running</string>
-    <string name="notification_text">Tap to configure</string>
-    <string name="notification_action_exit">Exit</string>
-    <string name="notification_channel_name">Desktop Pet Service</string>
-    <string name="dialog_settings_title">全局设置</string>
-    <string name="label_scale">Scale: %.2fx</string>
-    <string name="label_opacity">Opacity: %d%%</string>
+    <string name="label_adopt_cn">领养中心</string>
+    <string name="label_all_pets_count">All pets: %1$d</string>
+
+    <string name="msg_adopted">已领养 %1$s！</string>
+    <string name="msg_rescanning">正在重新扫描素材...</string>
+    <string name="msg_grant_permission">请先授予悬浮窗权限</string>
+    <string name="msg_stopping_service">正在停止服务...</string>
+    <string name="msg_starting_service">正在启动服务...</string>
+    <string name="msg_confirm_delete">确定要删除 %1$s 吗？</string>
+
+    <string name="notification_title">桌宠正在运行</string>
+    <string name="notification_text">点击返回应用进行设置</string>
+    <string name="notification_action_exit">退出</string>
+    <string name="notification_channel_name">桌宠悬浮服务</string>
+
     <string name="action_save">保存</string>
     <string name="action_cancel">取消</string>
     <string name="action_pause">回家</string>
     <string name="action_resume">召唤</string>
+    <string name="action_go_home">回家</string>
+    <string name="action_summon">召唤到桌面</string>
     <string name="action_rename">重命名</string>
     <string name="action_delete">删除</string>
     <string name="action_feed">喂食</string>
-    <string name="hint_enter_name">请输入新名字</string>
-    <string name="msg_confirm_delete">确定要删除 %1$s 吗？</string>
+    <string name="action_reset_defaults">恢复默认设置</string>
 
-    <string name="label_level">LV.5</string>
+    <string name="hint_enter_name">请输入新名字</string>
+    <string name="label_size">体型</string>
+
     <string name="settings_scale">缩放大小</string>
     <string name="settings_alpha">透明度</string>
     <string name="settings_vertical_move">允许垂直移动(旋转)</string>
-    <string name="settings_import_pet">导入宠物包 (ZIP)</string>
-    <string name="msg_import_success">导入成功！</string>
+    <string name="settings_drift">自由漂移</string>
+    <string name="settings_drift_enable">开启自由漂移</string>
+    <string name="settings_drift_speed">移动速度</string>
+    <string name="settings_import_pet">导入宠物包(ZIP)</string>
+    <string name="settings_assets_title">素材管理</string>
+    <string name="settings_import_image">导入图片/GIF</string>
+    <string name="settings_manage_assets">管理自定义素材</string>
+    <string name="msg_import_success">导入成功</string>
     <string name="msg_import_failed">导入失败</string>
 
-    <!-- Navigation -->
-    <string name="nav_home">控制台</string>
+    <string name="focuslock_app_name">Todo</string>
+    <string name="accessibility_service_description">Todo 使用此服务检测被限制应用的打开行为，并帮助你保持专注。</string>
+    <string name="app_title">Todo 专注</string>
+    <string name="section_permissions">1. 权限设置</string>
+    <string name="section_settings">2. 专注设置</string>
+    <string name="btn_grant_usage">授予使用情况访问权限</string>
+    <string name="btn_grant_accessibility">授予无障碍权限</string>
+    <string name="btn_grant_overlay">授予悬浮窗权限</string>
+    <string name="btn_allowed_apps">可用应用白名单</string>
+    <string name="allowed_apps_hint">输入允许在锁定期间使用的应用包名，每行一个。</string>
+    <string name="label_task_name">任务名称 (选填)</string>
+    <string name="hint_task_name">例如：写作业、阅读</string>
+    <string name="hint_duration">时长 (分钟)</string>
+    <string name="btn_25_min">25 分钟</string>
+    <string name="btn_45_min">45 分钟</string>
+    <string name="btn_50_min">50 分钟</string>
+    <string name="btn_start_focus">开始专注</string>
+    <string name="status_today_summary">今日专注 %d 分钟</string>
+
+    <string name="todo_title">Todo</string>
+    <string name="todo_summary_default">总计 0 项 · 已完成 0 项 · 待办 0 项</string>
+    <string name="todo_hint_long_press">长按任务可设为本次专注目标</string>
+    <string name="todo_empty">还没有任务，添加一个开始吧</string>
+    <string name="todo_input_hint">输入任务内容</string>
+    <string name="todo_item_hint">点击完成 · 长按专注</string>
+
+    <string name="pet_level_placeholder">LV.1 新手</string>
+
+    <string name="nav_home">首页</string>
     <string name="nav_pets">我的</string>
     <string name="nav_shop">商店</string>
     <string name="nav_settings">配置</string>
+
+    <!-- Legacy keys kept for compatibility with older layouts/modules. -->
+    <string name="title_activity_main">Nana Pet 控制台</string>
+    <string name="label_desktop_overlay">桌面悬浮窗</string>
+    <string name="status_running">状态：运行中</string>
+    <string name="status_stopped">状态：已停止</string>
+    <string name="action_start">启动</string>
+    <string name="action_stop">停止</string>
+    <string name="label_global_settings">全局设置</string>
+    <string name="action_configure">配置</string>
+    <string name="label_my_pets">我的宠物</string>
+    <string name="label_adopt">领养中心</string>
+    <string name="dialog_settings_title">全局设置</string>
+    <string name="label_scale">缩放: %.1fx</string>
+    <string name="label_opacity">透明度: %d%%</string>
 </resources>
+
+

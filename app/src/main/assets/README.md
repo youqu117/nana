@@ -1,14 +1,22 @@
-# 预设素材包（base64 占位）
+﻿# 资产目录说明（中文版）
 
-由于 PR 系统不支持二进制文件，本仓库将 PNG 以 base64 文本形式存放。
-打包时会自动生成真实 PNG（统一入口：`tools/prepare_assets.py`）。
+适用版本：`1.1.0`
 
-生成后会得到与规范一致的目录结构：
 
-```
+本目录是桌宠运行时资产根目录：`app/src/main/assets`。
+
+## 1. 目录作用
+
+- 存放可被 App 直接读取的宠物资源包。
+- 资源扫描后会出现在“商店/领养”列表中。
+
+## 2. 推荐目录结构
+
+```text
 app/src/main/assets/
   pets/
-    dog_shiba/
+    <pet_id>/
+      manifest.json
       preview.png
       static/
         pet_normal.png
@@ -17,31 +25,33 @@ app/src/main/assets/
         idle/
           sheet.png
           anim.json
-      meta.json
-    cat_orange/
-      ...
-  settings_default.json
 ```
 
-说明：`*.png.base64` 是 PNG 的文本占位。生成脚本会写出同名 `.png` 文件。
+说明：
 
-## 扩展素材清单（annotations.json）
+- `manifest.json`：宠物元数据与资源路径。
+- `preview.png`：商店/列表预览图。
+- `static/*`：静态展示图（兜底图）。
+- `anim/*`：动画帧与配置。
 
-新增素材以扁平目录形式放在 `app/src/main/assets/` 根目录，
-文件名与 `app/src/main/assets/annotations.json` 对应。
+## 3. 扩展素材记录（已收口）
 
-### 命名与备注规则
+- `annotations.json`：额外素材注释与来源记录。
+- `batches/*`：仅用于历史批次记录，不参与运行时扫描。
+- 运行时有效目录已统一为：`pets/*`。
 
-- 命名格式：
-  - 有颜色：`{animal}_{color}_{type}.png`
-  - 默认色：`{animal}_{type}.png`
-- `type` 仅允许 `static` 或 `idle_sheet`。
-- `description` 用一句话描述内容（动物 + 颜色 + 类型），便于后续检索与批次核对。
+## 4. 第三方素材
 
-## 批次记录
+- 第三方原始素材仓库建议使用：`resources/third_party/`。
+- `assets/` 仅保留运行时直接读取的资源，避免 APK 冗余膨胀。
+- 引入第三方素材时，请保留原授权文本并按需拷贝到运行目录。
 
-批次清单用于记录已接收的素材批次与对应文件名，便于后续补齐 base64 文件。
+## 5. 注意事项
 
-- `app/src/main/assets/batches/batch1/manifest.json`
-- `app/src/main/assets/batches/batch2/manifest.json`
-- `app/src/main/assets/batches/batch3/manifest.json`
+1. 不要随意删除 `pets/` 下正在使用的资源。
+2. 资源命名尽量稳定，避免频繁改路径导致 manifest 失效。
+3. 备用素材请放到 `tools/unused_assets`，不要放在本目录污染运行时扫描。
+4. 自定义导入失败时，优先检查 `manifest.json` 字段与路径是否匹配。
+
+
+

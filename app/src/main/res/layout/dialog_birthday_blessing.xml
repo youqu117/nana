@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/birthdayOverlay"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#99000000"
+    android:padding="24dp">
+
+    <LinearLayout
+        android:id="@+id/birthdayCard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:background="@drawable/bg_birthday_panel"
+        android:clickable="true"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:padding="8dp">
+
+        <ImageView
+            android:id="@+id/imgBirthdayCrown"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:src="@drawable/ic_easter_egg_crown"
+            android:contentDescription="@null"/>
+
+        <TextView
+            android:id="@+id/textBirthdayTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="琪琪，生日快乐！"
+            android:textColor="@color/ui_text_title"
+            android:textSize="26sp"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:id="@+id/textBirthdaySubtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:gravity="center"
+            android:text="愿你一直被温柔和热爱包围\n今天也要闪闪发光"
+            android:textColor="@color/ui_text_main"
+            android:textSize="16sp"/>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="42dp"
+                android:layout_height="42dp"
+                android:layout_marginEnd="8dp"
+                android:src="@drawable/fx_balloon_color"
+                android:contentDescription="@null"/>
+
+            <ImageView
+                android:layout_width="42dp"
+                android:layout_height="42dp"
+                android:layout_marginEnd="8dp"
+                android:src="@drawable/fx_gift_color"
+                android:contentDescription="@null"/>
+
+            <ImageView
+                android:layout_width="42dp"
+                android:layout_height="42dp"
+                android:src="@drawable/fx_cake_color"
+                android:contentDescription="@null"/>
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btnBirthdayClose"
+            android:layout_width="140dp"
+            android:layout_height="@dimen/button_height_compact"
+            android:layout_marginTop="14dp"
+            android:background="@drawable/bg_btn_primary"
+            android:text="收到啦"
+            android:textColor="@android:color/white"/>
+    </LinearLayout>
+</FrameLayout>

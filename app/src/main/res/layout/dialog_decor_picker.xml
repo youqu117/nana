@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/decorPickerRoot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_decor_dialog"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/textDecorTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="选择装饰素材"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="@color/ui_text_title"/>
+
+    <TextView
+        android:id="@+id/textDecorHint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="点击添加，长按可删除已放置的装饰"
+        android:textSize="12sp"
+        android:textColor="@color/ui_text_mute"/>
+
+    <ScrollView
+        android:id="@+id/decorScroll"
+        android:layout_width="match_parent"
+        android:layout_height="420dp"
+        android:layout_marginTop="10dp">
+
+        <LinearLayout
+            android:id="@+id/decorContent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="8dp"/>
+    </ScrollView>
+</LinearLayout>
