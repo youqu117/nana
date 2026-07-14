@@ -28,7 +28,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Build debug and release APKs
-        run: ./gradlew --no-daemon assembleDebug assembleRelease
+        run: bash ./gradlew --no-daemon assembleDebug assembleRelease
 
       - name: Upload APKs
         uses: actions/upload-artifact@v4
