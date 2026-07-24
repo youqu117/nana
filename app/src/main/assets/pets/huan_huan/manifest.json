@@ -1,25 +1,13 @@
 {
   "id": "huan_huan",
-  "name": "Huan Huan",
+  "name": "欢欢",
   "version": 1,
   "preview": "pets/huan_huan/preview.png",
   "static_normal": "pets/huan_huan/preview.png",
   "static_tongue": "pets/huan_huan/preview.png",
-  "idle_sheet": "pets/huan_huan/preview.png",
+  "idle_sheet": "pets/huan_huan/idle_sheet.png",
   "idle_anim": "pets/huan_huan/anim/idle/anim.json",
-  "default_scale": 1,
-  "hitbox": {
-    "x": 0,
-    "y": 0,
-    "w": 48,
-    "h": 48
-  },
-  "anchors": {
-    "root_x": 24,
-    "root_y": 48,
-    "head_x": 24,
-    "head_y": 10,
-    "face_x": 24,
-    "face_y": 15
-  }
+  "default_scale": 3,
+  "hitbox": { "x": 8, "y": 10, "w": 32, "h": 30 },
+  "anchors": { "root_x": 24, "root_y": 40, "head_x": 24, "head_y": 16, "face_x": 24, "face_y": 20 }
 }

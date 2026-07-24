@@ -30,18 +30,6 @@ object AssetScanner {
 
                 val assets = petsList.mapNotNull { folderName ->
                     val manifest = AssetLoader.loadManifest(context, folderName) ?: return@mapNotNull null
-                    val hasPreview = AssetLoader.assetExists(context, manifest.preview)
-                    val hasNormal = AssetLoader.assetExists(context, manifest.staticNormal)
-                    val hasIdleSheet = manifest.idleSheet.isBlank() ||
-                        AssetLoader.assetExists(context, manifest.idleSheet)
-                    if (!hasPreview || !hasNormal || !hasIdleSheet) {
-                        LogUtils.w(
-                            TAG,
-                            "Skipping ${manifest.id}: missing assets " +
-                                "(preview=$hasPreview, normal=$hasNormal, idleSheet=$hasIdleSheet)"
-                        )
-                        return@mapNotNull null
-                    }
                     PetAssetEntity(
                         id = manifest.id,
                         name = manifest.name,

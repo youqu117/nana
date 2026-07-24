@@ -1,13 +1,24 @@
 {
-  "name": "idle",
+  "version": 1,
+  "id": "huan_huan_idle",
+  "type": "spritesheet",
+  "image": "sheet.png",
+  "pixel_art": true,
+  "fps": 4,
   "loop": true,
+  "duration_ms": 800,
+  "anchors": {
+    "root": { "x": 24, "y": 40 },
+    "head": { "x": 24, "y": 16 },
+    "face": { "x": 24, "y": 20 }
+  },
+  "hitboxes": {
+    "tap": { "shape": "rect", "x": 8, "y": 10, "w": 32, "h": 30 }
+  },
   "frames": [
-    {
-      "x": 0,
-      "y": 0,
-      "w": 48,
-      "h": 48,
-      "duration": 1000
-    }
+    { "i": 0, "rect": { "x": 0, "y": 0, "w": 48, "h": 48 }, "offset": { "x": 0, "y": 0 }, "duration_ms": 200, "events": [] },
+    { "i": 1, "rect": { "x": 48, "y": 0, "w": 48, "h": 48 }, "offset": { "x": 0, "y": -1 }, "duration_ms": 200, "events": [] },
+    { "i": 2, "rect": { "x": 96, "y": 0, "w": 48, "h": 48 }, "offset": { "x": 0, "y": 0 }, "duration_ms": 200, "events": [] },
+    { "i": 3, "rect": { "x": 144, "y": 0, "w": 48, "h": 48 }, "offset": { "x": 0, "y": 1 }, "duration_ms": 200, "events": [] }
   ]
 }

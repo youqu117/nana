@@ -24,7 +24,28 @@ object BitmapUtils {
         targetH: Int? = null,
         maxDimPx: Int = MAX_BITMAP_DIM_PX
     ): Bitmap? {
-        return decodeSampled(maxDimPx) { AssetLoader.openStream(context, path) }
+        return try {
+            decodeSampled(maxDimPx) { AssetLoader.openStream(context, path) }
+        } catch (e: Exception) {
+            generateFallbackBitmap(path, targetW, targetH)
+        }
+    }
+
+    private fun generateFallbackBitmap(path: String, targetW: Int?, targetH: Int?): Bitmap? {
+        val petId = extractPetIdFromPath(path)
+        val width = targetW ?: 48
+        val height = targetH ?: 48
+        return PixelPetGenerator.generatePetBitmap(petId, width, height)
+    }
+
+    private fun extractPetIdFromPath(path: String): String {
+        val parts = path.split("/")
+        for (i in parts.indices) {
+            if (parts[i] == "pets" && i + 1 < parts.size) {
+                return parts[i + 1]
+            }
+        }
+        return "default"
     }
 
     /** 解码任意 InputStream（如 contentResolver 打开的图片）。 */

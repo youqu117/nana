@@ -1,22 +1,14 @@
 {
   "id": "dragon",
-  "name": "Pixel Dragon",
+  "name": "像素龙",
   "version": 1,
   "preview": "pets/dragon/dragon.png",
   "static_normal": "pets/dragon/dragon.png",
   "static_tongue": "pets/dragon/dragon_fire.png",
-  "default_scale": 2,
-  "hitbox": { "x": 16, "y": 16, "w": 64, "h": 64 },
-  "anchors": { "root_x": 48, "root_y": 80 },
-  "sing_emote": "fire",
-  "sounds": {
-    "tap": "pets/dragon/sounds/tap.ogg",
-    "feed": "pets/dragon/sounds/crunch.ogg",
-    "sing": "pets/dragon/sounds/roar.ogg",
-    "greet": "pets/dragon/sounds/growl.ogg",
-    "sleep": "pets/dragon/sounds/snore.ogg",
-    "wake": "pets/dragon/sounds/yawn.ogg",
-    "music": "pets/dragon/sounds/hum.ogg",
-    "fire": "pets/dragon/sounds/flame.ogg"
-  }
+  "idle_sheet": "pets/dragon/idle_sheet.png",
+  "idle_anim": "pets/dragon/anim/idle/anim.json",
+  "default_scale": 3,
+  "hitbox": { "x": 8, "y": 10, "w": 32, "h": 30 },
+  "anchors": { "root_x": 24, "root_y": 40, "head_x": 24, "head_y": 16, "face_x": 24, "face_y": 20 },
+  "sing_emote": "fire"
 }

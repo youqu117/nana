@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.0.3] - 2026-07-24
+
+### Added
+
+- 像素风宠物生成器：PixelPetGenerator 动态绘制11种宠物的像素风图片
+- 内置素材支持：无需外部图片资源，首次安装即可看到完整宠物列表
+- 动画帧生成：每种宠物支持4帧动态动画效果
+- 宠物名称本地化：所有宠物名称改为中文（橘猫、柴犬、像素龙、熊猫、企鹅宝宝、乌龟、蜘蛛、欢欢、拉拉、琪琪、悠哈）
+
+### Changed
+
+- BitmapUtils：图片加载失败时自动使用生成器创建后备图片
+- AssetScanner：不再因缺少图片文件而跳过宠物，确保所有宠物都能显示
+- 所有宠物manifest.json统一配置，添加完整的hitbox和anchors参数
+
+### Fixed
+
+- 首次安装后宠物列表为空的问题
+
 ## [0.0.2] - 2026-07-24
 
 ### Added

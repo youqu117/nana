@@ -1,12 +1,12 @@
 {
   "id": "penguin_chick",
-  "name": "penguin_chick",
+  "name": "企鹅宝宝",
   "version": 1,
   "preview": "pets/penguin_chick/preview.png",
   "static_normal": "pets/penguin_chick/preview.png",
   "static_tongue": "pets/penguin_chick/preview.png",
   "idle_sheet": "pets/penguin_chick/idle_sheet.png",
-  "idle_anim": "",
+  "idle_anim": "pets/penguin_chick/anim/idle/anim.json",
   "default_scale": 3,
   "hitbox": { "x": 8, "y": 10, "w": 32, "h": 30 },
   "anchors": { "root_x": 24, "root_y": 40, "head_x": 24, "head_y": 16, "face_x": 24, "face_y": 20 }
