@@ -1,46 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Base Colors - warm & cozy palette -->
-    <color name="colorPrimary">#E8A87C</color>
-    <color name="colorPrimaryDark">#C38D6A</color>
-    <color name="colorAccent">#F7DCB4</color>
+    <!-- Base Colors - Warm & cozy pastel palette -->
+    <color name="colorPrimary">#F4A261</color>
+    <color name="colorPrimaryDark">#E76F51</color>
+    <color name="colorAccent">#FFE8D6</color>
     
     <!-- UI Backgrounds -->
-    <color name="ui_bg_page">#FFFBF5</color>
+    <color name="ui_bg_page">#FFFDF9</color>
     <color name="ui_bg_card">#FFFFFF</color>
-    <color name="ui_bg_accent">#FFF4E6</color>
+    <color name="ui_bg_accent">#FFF5EB</color>
     <color name="ui_bg_card_elevated">#FFFFFF</color>
     
     <!-- Text -->
-    <color name="ui_text_title">#5D4037</color>
-    <color name="ui_text_subtitle">#8D6E63</color>
-    <color name="ui_text_main">#4E342E</color>
-    <color name="ui_text_mute">#A1887F</color>
+    <color name="ui_text_title">#4A3E3D</color>
+    <color name="ui_text_subtitle">#7D6B69</color>
+    <color name="ui_text_main">#3A302F</color>
+    <color name="ui_text_mute">#9E8C8A</color>
     
-    <!-- Switch / Status -->
-    <color name="ui_green">#22C55E</color> <!-- green-500 -->
-    <color name="ui_green_light">#DCFCE7</color> <!-- green-100 -->
-    <color name="ui_gray_light">#F1F5F9</color> <!-- slate-100 -->
-    <color name="ui_gray_dim">#CBD5E1</color> <!-- slate-300 -->
-    <color name="ui_amber">#FBBF24</color> <!-- amber-400 -->
-    <color name="ui_amber_light">#FEF3C7</color> <!-- amber-100 -->
-    <color name="ui_rose">#FB7185</color> <!-- rose-400 -->
-    <color name="ui_rose_light">#FFE4E6</color> <!-- rose-100 -->
-    <color name="ui_sky">#38BDF8</color> <!-- sky-400 -->
-    <color name="ui_sky_dark">#0EA5E9</color> <!-- sky-500 -->
+    <!-- Switch / Status Colors -->
+    <color name="ui_green">#10B981</color>
+    <color name="ui_green_light">#D1FAE5</color>
+    <color name="ui_gray_light">#F8FAFC</color>
+    <color name="ui_gray_dim">#E2E8F0</color>
+    <color name="ui_amber">#F59E0B</color>
+    <color name="ui_amber_light">#FEF3C7</color>
+    <color name="ui_rose">#F43F5E</color>
+    <color name="ui_rose_light">#FFE4E6</color>
+    <color name="ui_sky">#0EA5E9</color>
+    <color name="ui_sky_dark">#0284C7</color>
     
-    <!-- Missing Colors Fix -->
-    <color name="ui_yellow">#EAB308</color> <!-- yellow-500 -->
-    <color name="ui_pink">#EC4899</color> <!-- pink-500 -->
-    <color name="ui_accent">#F97316</color> <!-- orange-500 -->
+    <!-- Pastel Accents -->
+    <color name="ui_yellow">#EAB308</color>
+    <color name="ui_pink">#EC4899</color>
+    <color name="ui_accent">#F97316</color>
+    <color name="nav_item_active">#E76F51</color>
+    <color name="nav_item_inactive">#9E8C8A</color>
     
-    <!-- Legacy Support (keeping for compatibility during refactor) -->
-    <color name="bg_cream">#FFF8E7</color>
+    <!-- Legacy Support (for backward compatibility) -->
+    <color name="bg_cream">#FFF9F0</color>
     <color name="bg_card">#FFFFFF</color>
     <color name="bg_accent_card">#FFFFFF</color>
     <color name="text_primary">#334155</color>
     <color name="text_secondary">#94A3B8</color>
     <color name="macaron_blue">#38BDF8</color>
-    <color name="status_green">#22C55E</color>
-    <color name="status_red">#EF5350</color>
+    <color name="status_green">#10B981</color>
+    <color name="status_red">#EF4444</color>
 </resources>

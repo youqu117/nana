@@ -2,12 +2,24 @@
   "id": "dragon",
   "name": "Pixel Dragon",
   "version": 1,
-  "preview": "pets/dragon/dragon.png",
-  "static_normal": "pets/dragon/dragon.png",
-  "static_tongue": "pets/dragon/dragon_fire.png",
+  "preview": "pets/dragon/preview.png",
+  "static_normal": "pets/dragon/preview.png",
+  "static_tongue": "pets/dragon/preview.png",
   "default_scale": 2,
-  "hitbox": { "x": 16, "y": 16, "w": 64, "h": 64 },
-  "anchors": { "root_x": 48, "root_y": 80 },
+  "hitbox": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 96
+  },
+  "anchors": {
+    "root_x": 48,
+    "root_y": 96,
+    "head_x": 48,
+    "head_y": 24,
+    "face_x": 48,
+    "face_y": 32
+  },
   "sing_emote": "fire",
   "sounds": {
     "tap": "pets/dragon/sounds/tap.ogg",
@@ -18,5 +30,7 @@
     "wake": "pets/dragon/sounds/yawn.ogg",
     "music": "pets/dragon/sounds/hum.ogg",
     "fire": "pets/dragon/sounds/flame.ogg"
-  }
+  },
+  "idle_sheet": "pets/dragon/idle_sheet.png",
+  "idle_anim": "pets/dragon/anim/idle/anim.json"
 }

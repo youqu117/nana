@@ -1,78 +1,62 @@
-﻿package com.pixelpet.ui.petroom
+package com.pixelpet.ui.petroom
 
+import android.app.Dialog
+import android.graphics.BitmapFactory
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
+import android.net.Uri
+import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.os.Bundle
-import android.net.Uri
+import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup
+import android.view.Window
 import android.widget.Button
-import android.widget.FrameLayout
 import android.widget.EditText
+import android.widget.FrameLayout
+import android.widget.GridLayout
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
-import android.widget.ImageView
-import android.widget.ScrollView
-import android.view.Gravity
-import android.view.MotionEvent
-import android.graphics.BitmapFactory
-import android.app.Dialog
-import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
-import android.view.Window
-import android.view.ViewGroup
-import com.pixelpet.ui.main.MainActivity
-import kotlin.math.roundToInt
-import kotlin.math.max
-import kotlin.math.min
-import android.widget.GridLayout
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.Toolbar
 import androidx.lifecycle.lifecycleScope
+import com.pixelpet.R
+import com.pixelpet.audio.SoundManager
 import com.pixelpet.content.AssetLoader
 import com.pixelpet.data.AppDatabase
-import com.pixelpet.data.PetRepository
 import com.pixelpet.data.PetInstanceEntity
-import com.pixelpet.pet.model.PetBehavior
+import com.pixelpet.data.PetRepository
 import com.pixelpet.pet.interaction.PetEmote
 import com.pixelpet.pet.interaction.PetEmoteEvent
 import com.pixelpet.pet.level.LevelSystem
-import com.pixelpet.audio.SoundManager
+import com.pixelpet.pet.model.PetBehavior
 import com.pixelpet.pet.runtime.PetRuntime
 import com.pixelpet.pet.view.PetView
-import com.pixelpet.R
+import com.pixelpet.ui.main.MainActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.json.JSONArray
-import org.json.JSONObject
 import java.io.File
-import java.io.FileOutputStream
 import java.util.UUID
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.roundToInt
 import kotlin.random.Random
 
 class PetDetailActivity : AppCompatActivity() {
-    private data class RoomDecorItem(
-        val id: String,
-        val path: String,
-        var nx: Float,
-        var ny: Float,
-        var scale: Float = 1.0f,
-        var alpha: Float = 1.0f
-    )
-    private data class DecorEntry(
-        val label: String,
-        val resId: Int? = null,
-        val path: String? = null
-    )
 
     private lateinit var repository: PetRepository
+    private lateinit var decorManager: RoomDecorManager
+    private val roomAnimator = PetRoomAnimator()
+
     private var currentInstanceId: Long = -1L
     private var petRuntime: PetRuntime? = null
     private var isInteractingWithSeek = false
@@ -89,8 +73,7 @@ class PetDetailActivity : AppCompatActivity() {
     private lateinit var btnToggleConsoleRef: ImageView
     private lateinit var btnToggleStatusRef: ImageView
     private lateinit var btnConsoleMoreRef: Button
-    private val decorItems = mutableListOf<RoomDecorItem>()
-    private var decorBoundInstanceId: Long = -1L
+
     private var isConsoleCollapsed = false
     private var isStatusCollapsed = false
     private var isConsoleAdvancedVisible = false
@@ -106,10 +89,6 @@ class PetDetailActivity : AppCompatActivity() {
     private var lastInstanceEnabled: Boolean? = null
     private var suppressRoomSyncUntilMs = 0L
     private var soundManager: SoundManager? = null
-    private val autoHideRunnable = Runnable {
-        setConsoleVisible(false)
-        setStatusVisible(false)
-    }
 
     private val decorImagePicker = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) {
@@ -117,19 +96,8 @@ class PetDetailActivity : AppCompatActivity() {
         }
     }
 
-    // Animation & Movement
     private val handler = Handler(Looper.getMainLooper())
     private var globalScale = 1.0f
-    private var isDriftEnabled = true // Default to true for the room so it feels alive
-    private var driftSpeed = 50
-    
-    private var targetX = 0f
-    private var targetY = 0f
-    private var startX = 0f
-    private var startY = 0f
-    private var moveStartTime = 0L
-    private var moveDuration = 0L
-    private var isMovingToTarget = false
 
     private val loopRunnable = object : Runnable {
         override fun run() {
@@ -151,6 +119,7 @@ class PetDetailActivity : AppCompatActivity() {
         try {
             val db = AppDatabase.getDatabase(this)
             repository = PetRepository(db.petDao(), db.settingsDao())
+            decorManager = RoomDecorManager(this, repository, lifecycleScope)
         } catch (e: Exception) {
             e.printStackTrace()
             Toast.makeText(this, "Database Error: ${e.message}", Toast.LENGTH_LONG).show()
@@ -197,7 +166,7 @@ class PetDetailActivity : AppCompatActivity() {
         val state = petRuntime?.state ?: return 70L
 
         val signature = ((state.behavior.ordinal + 1) * 1000000) +
-            (state.energy * 10000) + (state.mood * 100) + state.hunger
+                (state.energy * 10000) + (state.mood * 100) + state.hunger
         if (signature != lastStateSignature || now - lastStateUpdateMs > 300L) {
             petView.updateState(state)
             lastStateSignature = signature
@@ -209,7 +178,6 @@ class PetDetailActivity : AppCompatActivity() {
         }
 
         if (currentInstance?.isEnabled == true) {
-            // Keep room avatar aligned with current overlay position when summoned, but throttle.
             val instance = currentInstance
             if (instance != null && now - lastOverlaySyncMs > 300L && now >= suppressRoomSyncUntilMs) {
                 val ix = instance.x.toFloat()
@@ -228,99 +196,22 @@ class PetDetailActivity : AppCompatActivity() {
             return 60L
         }
 
-        // Movement Logic
-        val shouldMove = (state.behavior == PetBehavior.WALK || state.behavior == PetBehavior.RUN) ||
-                         (isDriftEnabled && state.behavior != PetBehavior.SLEEP && state.behavior != PetBehavior.HELD)
+        val moving = roomAnimator.updateMovement(
+            petView = petView,
+            roomContainer = roomContainer,
+            isEnabled = currentInstance?.isEnabled == true,
+            behavior = state.behavior,
+            now = now
+        )
 
-        if (shouldMove) {
-            if (!isMovingToTarget) pickNewTarget(petView)
-            
-            val elapsed = now - moveStartTime
-            if (elapsed < moveDuration) {
-                val progress = elapsed.toFloat() / moveDuration
-                val eased = easeInOutCubic(progress)
-                val cx = startX + (targetX - startX) * eased
-                val cy = startY + (targetY - startY) * eased
-                
-                petView.translationX = cx
-                petView.translationY = cy
-            } else {
-                isMovingToTarget = false
-                petView.rotation = 0f
-            }
-        } else {
-            isMovingToTarget = false
-            petView.rotation = 0f
-        }
         persistStateIfNeeded(now)
         updateFxAnchor()
-        return if (shouldMove) 24L else 60L
-    }
-
-    private fun easeInOutCubic(t: Float): Float {
-        return if (t < 0.5f) 4 * t * t * t else 1 - Math.pow((-2 * t + 2).toDouble(), 3.0).toFloat() / 2
-    }
-
-    private fun pickNewTarget(petView: PetView) {
-        val container = findViewById<FrameLayout>(R.id.layoutRoomContainer) ?: return
-        val containerW = container.width
-        val containerH = container.height
-        val viewW = petView.width
-        val viewH = petView.height
-        
-        if (containerW == 0 || viewW == 0) return
-
-        // If pet view is larger than the room container (common on some phones/assets),
-        // movement range can become negative and crash Random range generation.
-        // Clamp the available translation range to non-negative values.
-        val maxTransX = ((containerW - viewW) / 2f - 20f).coerceAtLeast(0f)
-        val maxTransY = ((containerH - viewH) / 2f - 20f).coerceAtLeast(0f)
-
-        // Target
-        targetX = if (maxTransX > 0f) {
-            Random.nextDouble((-maxTransX).toDouble(), maxTransX.toDouble()).toFloat()
-        } else {
-            0f
-        }
-        startX = petView.translationX
-
-        if (isDriftEnabled) {
-             targetY = if (maxTransY > 0f) {
-                 Random.nextDouble((-maxTransY).toDouble(), maxTransY.toDouble()).toFloat()
-             } else {
-                 0f
-             }
-        } else {
-             targetY = maxTransY
-        }
-        startY = petView.translationY
-
-        moveStartTime = System.currentTimeMillis()
-        
-        val dx = targetX - startX
-        val dy = targetY - startY
-        val distance = kotlin.math.sqrt((dx * dx + dy * dy).toDouble()).toFloat()
-
-        val speedFactor = if (isDriftEnabled && driftSpeed > 0) {
-             10.0f - (driftSpeed / 100f * 9.0f)
-        } else {
-             4.0f 
-        }
-        
-        moveDuration = (distance * speedFactor).toLong().coerceAtLeast(1000L)
-        isMovingToTarget = true
-        
-        // Facing
-        if (dx > 0) {
-            petView.setFacingDirection(1)
-        } else if (dx < 0) {
-            petView.setFacingDirection(-1)
-        }
+        return if (moving) 24L else 60L
     }
 
     private fun setupObservers() {
         observePet()
-        
+
         lifecycleScope.launch {
             repository.getSetting("scale").collectLatest {
                 globalScale = it?.toFloatOrNull() ?: 1.0f
@@ -329,12 +220,12 @@ class PetDetailActivity : AppCompatActivity() {
         }
         lifecycleScope.launch {
             repository.getSetting("drift_enabled").collectLatest {
-                isDriftEnabled = it?.toBoolean() ?: true
+                roomAnimator.isDriftEnabled = it?.toBoolean() ?: true
             }
         }
         lifecycleScope.launch {
             repository.getSetting("drift_speed").collectLatest {
-                driftSpeed = it?.toIntOrNull() ?: 50
+                roomAnimator.driftSpeed = it?.toIntOrNull() ?: 50
             }
         }
     }
@@ -389,12 +280,11 @@ class PetDetailActivity : AppCompatActivity() {
         setButtonTopIcon(btnDecorAdd, R.drawable.fx_star_color, sizeDp = 18)
         setButtonTopIcon(btnDecorClear, R.drawable.ic_delete, sizeDp = 16, tintColorRes = R.color.ui_rose)
         setButtonTopIcon(btnToggle, R.drawable.ic_pixel_add, sizeDp = 16, tintColorRes = R.color.ui_text_title)
-        
-        // Scale Control
+
         val seekScale = findViewById<SeekBar>(R.id.seekInstanceScale)
         val textScaleValue = findViewById<TextView>(R.id.textInstanceScaleValue)
-        
-        seekScale.max = 150 // 0.5x to 2.0x
+
+        seekScale.max = 150
         seekScale.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 if (fromUser) {
@@ -413,7 +303,6 @@ class PetDetailActivity : AppCompatActivity() {
             }
         })
 
-        // Pet Interaction
         petView.setOnClickListener {
             petRuntime?.handleTap(System.currentTimeMillis())
             soundManager?.play("tap")
@@ -421,7 +310,7 @@ class PetDetailActivity : AppCompatActivity() {
             petView.animate().scaleX(1.08f).scaleY(1.08f).setDuration(90).withEndAction {
                 petView.animate().scaleX(1f).scaleY(1f).setDuration(120).start()
             }.start()
-            if (Random.nextFloat() < 0.3f) { // 30% chance
+            if (Random.nextFloat() < 0.3f) {
                 spawnHeart()
             }
             pushStateNow()
@@ -463,7 +352,7 @@ class PetDetailActivity : AppCompatActivity() {
         }
     }
 
-    private fun updateUi(instance: com.pixelpet.data.PetInstanceEntity) {
+    private fun updateUi(instance: PetInstanceEntity) {
         currentInstance = instance
         val levelInfo = LevelSystem.fromPet(instance)
         supportActionBar?.title = "LV.${levelInfo.level} ${instance.name} 的小屋"
@@ -475,9 +364,13 @@ class PetDetailActivity : AppCompatActivity() {
         findViewById<ProgressBar>(R.id.progressLevelXp).progress = levelInfo.progressPercent
         findViewById<TextView>(R.id.textXpMini).text = "经验 ${levelInfo.progressPercent}%"
 
-        if (decorBoundInstanceId != instance.instanceId) {
-            decorBoundInstanceId = instance.instanceId
-            loadRoomDecorForInstance(instance.instanceId)
+        if (decorManager.decorBoundInstanceId != instance.instanceId) {
+            lifecycleScope.launch(Dispatchers.IO) {
+                decorManager.loadDecorForInstance(instance.instanceId)
+                withContext(Dispatchers.Main) {
+                    decorManager.renderRoomDecor(this@PetDetailActivity, decorLayer, instance.instanceId)
+                }
+            }
         }
 
         if (!isInteractingWithSeek) {
@@ -527,7 +420,6 @@ class PetDetailActivity : AppCompatActivity() {
                 currentAssetId = manifest.id
                 petRuntime?.state?.let { petView.updateState(it) }
 
-                // Easter Egg for Qi Qi
                 try {
                     val crown = findViewById<ImageView>(R.id.imgEasterEggCrown)
                     if (crown != null) {
@@ -535,11 +427,8 @@ class PetDetailActivity : AppCompatActivity() {
                             try {
                                 crown.setImageResource(R.drawable.ic_easter_egg_crown)
                                 crown.visibility = View.VISIBLE
-                                crown.setOnClickListener {
-                                    triggerBirthdayEasterEgg(crown)
-                                }
+                                crown.setOnClickListener { triggerBirthdayEasterEgg(crown) }
                             } catch (e: Exception) {
-                                // Defensive fallback: avoid crashing the room if crown drawable fails.
                                 crown.visibility = View.GONE
                                 crown.setOnClickListener(null)
                             }
@@ -556,7 +445,6 @@ class PetDetailActivity : AppCompatActivity() {
     }
 
     private fun triggerBirthdayEasterEgg(view: View) {
-        // Animation
         view.animate()
             .rotationBy(360f)
             .scaleX(1.5f)
@@ -628,17 +516,16 @@ class PetDetailActivity : AppCompatActivity() {
         suppressRoomSyncUntilMs = System.currentTimeMillis() + 900L
         lifecycleScope.launch {
             val instance = repository.getInstanceById(currentInstanceId) ?: return@launch
-            
+
             if (instance.hunger >= 100 && instance.mood >= 100) {
-                 Toast.makeText(this@PetDetailActivity, "${instance.name} 已经吃饱喝足了!", Toast.LENGTH_SHORT).show()
-                 return@launch
+                Toast.makeText(this@PetDetailActivity, "${instance.name} 已经吃饱喝足了!", Toast.LENGTH_SHORT).show()
+                return@launch
             }
-            
+
             val newHunger = (instance.hunger + 10).coerceAtMost(100)
             val newMood = (instance.mood + 5).coerceAtMost(100)
             repository.updateInstance(instance.copy(hunger = newHunger, mood = newMood))
-            
-            // Interaction effect
+
             petRuntime?.handleFeed()
             soundManager?.play("feed")
             spawnHeart()
@@ -681,19 +568,18 @@ class PetDetailActivity : AppCompatActivity() {
                 .show()
         }
     }
-    
+
     private fun delete() {
         suppressRoomSyncUntilMs = System.currentTimeMillis() + 900L
         lifecycleScope.launch {
-             val instance = repository.getInstanceById(currentInstanceId) ?: return@launch
-             AlertDialog.Builder(this@PetDetailActivity)
+            val instance = repository.getInstanceById(currentInstanceId) ?: return@launch
+            AlertDialog.Builder(this@PetDetailActivity)
                 .setTitle(getString(R.string.action_delete))
                 .setMessage(getString(R.string.msg_confirm_delete, instance.name))
                 .setPositiveButton(getString(R.string.action_delete)) { _, _ ->
                     lifecycleScope.launch {
                         repository.deleteInstance(instance)
-                        deleteDecorFiles()
-                        repository.setSetting(roomDecorKey(instance.instanceId), "[]")
+                        repository.setSetting("room_decor_${instance.instanceId}", "[]")
                         finish()
                     }
                 }
@@ -714,24 +600,22 @@ class PetDetailActivity : AppCompatActivity() {
         val anchor = getFxAnchor()
         val sizePx = ((26f * getFxScaleFactor()).coerceIn(18f, 54f) * resources.displayMetrics.density).roundToInt()
 
-        val heart = android.widget.ImageView(this).apply {
+        val heart = ImageView(this).apply {
             setImageResource(R.drawable.fx_heart_color)
             layoutParams = FrameLayout.LayoutParams(sizePx, sizePx).apply {
-                gravity = android.view.Gravity.TOP or android.view.Gravity.START
+                gravity = Gravity.TOP or Gravity.START
                 leftMargin = clampInRange(anchor.first.roundToInt() - sizePx / 2, 0, max(0, container.width - sizePx))
                 topMargin = clampInRange(anchor.second.roundToInt() - sizePx / 2, 0, max(0, container.height - sizePx))
             }
         }
-        
+
         container.addView(heart)
-        
+
         heart.animate()
             .translationY(-100f)
             .alpha(0f)
             .setDuration(1000)
-            .withEndAction {
-                container.removeView(heart)
-            }
+            .withEndAction { container.removeView(heart) }
             .start()
     }
 
@@ -740,7 +624,6 @@ class PetDetailActivity : AppCompatActivity() {
         lastMusicSource = source
         petRuntime?.handlePlayMusic(System.currentTimeMillis())
         soundManager?.play("music")
-        // Visual FX is driven by PetRuntime emote events to avoid duplicate effects.
         pushStateNow()
         pokeUi()
     }
@@ -960,16 +843,6 @@ class PetDetailActivity : AppCompatActivity() {
         }
     }
 
-    private fun toggleConsolePanel() {
-        setConsoleVisible(isConsoleCollapsed)
-        pokeUi()
-    }
-
-    private fun toggleStatusPanel() {
-        setStatusVisible(isStatusCollapsed)
-        pokeUi()
-    }
-
     private fun setConsoleVisible(show: Boolean) {
         isConsoleCollapsed = !show
         if (!show) {
@@ -988,28 +861,6 @@ class PetDetailActivity : AppCompatActivity() {
         }
     }
 
-    private fun openSettings() {
-        val intent = android.content.Intent(this, MainActivity::class.java)
-        intent.putExtra(MainActivity.EXTRA_OPEN_TAB, MainActivity.TAB_SETTINGS)
-        startActivity(intent)
-    }
-
-    private fun toggleConsoleAdvanced() {
-        setConsoleAdvancedVisible(!isConsoleAdvancedVisible)
-        pokeUi()
-    }
-
-    private fun setConsoleAdvancedVisible(show: Boolean) {
-        isConsoleAdvancedVisible = show
-        if (show) {
-            consoleAdvanced.visibility = View.VISIBLE
-            btnConsoleMoreRef.text = "收起"
-        } else {
-            consoleAdvanced.visibility = View.GONE
-            btnConsoleMoreRef.text = "更多"
-        }
-    }
-
     private fun setStatusVisible(show: Boolean) {
         isStatusCollapsed = !show
         if (!show) {
@@ -1024,6 +875,17 @@ class PetDetailActivity : AppCompatActivity() {
                 statusContent.alpha = 0f
                 statusContent.animate().alpha(1f).setDuration(140).start()
             }
+        }
+    }
+
+    private fun setConsoleAdvancedVisible(show: Boolean) {
+        isConsoleAdvancedVisible = show
+        if (show) {
+            consoleAdvanced.visibility = View.VISIBLE
+            btnConsoleMoreRef.text = "收起控制"
+        } else {
+            consoleAdvanced.visibility = View.GONE
+            btnConsoleMoreRef.text = "更多控制"
         }
     }
 
@@ -1076,8 +938,8 @@ class PetDetailActivity : AppCompatActivity() {
 
     private fun showBuiltInDecorPicker() {
         lifecycleScope.launch {
-            val builtIn = builtInDecorEntries()
-            val custom = loadDecorLibrary()
+            val builtIn = decorManager.builtInDecorEntries()
+            val custom = decorManager.loadDecorLibrary()
                 .mapIndexed { idx, path -> DecorEntry(label = "自定义素材 ${idx + 1}", path = path) }
             val dialogView = layoutInflater.inflate(R.layout.dialog_decor_picker, null)
             val root = dialogView.findViewById<LinearLayout>(R.id.decorContent)
@@ -1105,8 +967,8 @@ class PetDetailActivity : AppCompatActivity() {
         val instanceId = currentInstance?.instanceId ?: currentInstanceId
         lifecycleScope.launch(Dispatchers.IO) {
             try {
-                val savedPath = copyDecorToInternal(uri) ?: return@launch
-                addToDecorLibrary(savedPath)
+                val savedPath = decorManager.copyDecorToInternal(uri) ?: return@launch
+                decorManager.addToDecorLibrary(savedPath)
                 val id = UUID.randomUUID().toString()
                 val item = RoomDecorItem(
                     id = id,
@@ -1116,10 +978,10 @@ class PetDetailActivity : AppCompatActivity() {
                     scale = Random.nextDouble(0.8, 1.25).toFloat(),
                     alpha = 0.95f
                 )
-                decorItems.add(item)
-                saveRoomDecorForInstance(instanceId)
+                decorManager.decorItems.add(item)
+                decorManager.saveRoomDecorForInstance(instanceId)
                 withContext(Dispatchers.Main) {
-                    renderRoomDecor()
+                    decorManager.renderRoomDecor(this@PetDetailActivity, decorLayer, instanceId)
                     Toast.makeText(this@PetDetailActivity, "已添加小屋装饰", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
@@ -1141,10 +1003,10 @@ class PetDetailActivity : AppCompatActivity() {
                 scale = Random.nextDouble(0.85, 1.25).toFloat(),
                 alpha = 0.96f
             )
-            decorItems.add(item)
-            saveRoomDecorForInstance(instanceId)
+            decorManager.decorItems.add(item)
+            decorManager.saveRoomDecorForInstance(instanceId)
             withContext(Dispatchers.Main) {
-                renderRoomDecor()
+                decorManager.renderRoomDecor(this@PetDetailActivity, decorLayer, instanceId)
                 Toast.makeText(this@PetDetailActivity, "已添加素材库装饰", Toast.LENGTH_SHORT).show()
             }
         }
@@ -1161,10 +1023,10 @@ class PetDetailActivity : AppCompatActivity() {
                 scale = Random.nextDouble(0.85, 1.25).toFloat(),
                 alpha = 0.96f
             )
-            decorItems.add(item)
-            saveRoomDecorForInstance(instanceId)
+            decorManager.decorItems.add(item)
+            decorManager.saveRoomDecorForInstance(instanceId)
             withContext(Dispatchers.Main) {
-                renderRoomDecor()
+                decorManager.renderRoomDecor(this@PetDetailActivity, decorLayer, instanceId)
                 Toast.makeText(this@PetDetailActivity, "已添加内置装饰", Toast.LENGTH_SHORT).show()
             }
         }
@@ -1177,10 +1039,10 @@ class PetDetailActivity : AppCompatActivity() {
             .setMessage("只清空当前宠物小屋的装饰，不影响其他宠物。")
             .setPositiveButton(getString(R.string.action_delete)) { _, _ ->
                 lifecycleScope.launch(Dispatchers.IO) {
-                    decorItems.clear()
-                    saveRoomDecorForInstance(instanceId)
+                    decorManager.decorItems.clear()
+                    decorManager.saveRoomDecorForInstance(instanceId)
                     withContext(Dispatchers.Main) {
-                        renderRoomDecor()
+                        decorManager.renderRoomDecor(this@PetDetailActivity, decorLayer, instanceId)
                         Toast.makeText(this@PetDetailActivity, "已清空当前小屋装饰", Toast.LENGTH_SHORT).show()
                     }
                 }
@@ -1189,252 +1051,15 @@ class PetDetailActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun loadRoomDecorForInstance(instanceId: Long) {
-        lifecycleScope.launch(Dispatchers.IO) {
-            val key = roomDecorKey(instanceId)
-            val value = repository.getSetting(key).firstOrNull()
-            decorItems.clear()
-            parseDecorJson(value).forEach { decorItems.add(it) }
-            if (decorItems.isEmpty()) {
-                decorItems.addAll(defaultDecorTemplate())
-                saveRoomDecorForInstance(instanceId)
-            }
-            withContext(Dispatchers.Main) { renderRoomDecor() }
-        }
+    private fun openSettings() {
+        val intent = android.content.Intent(this, MainActivity::class.java)
+        intent.putExtra(MainActivity.EXTRA_OPEN_TAB, MainActivity.TAB_SETTINGS)
+        startActivity(intent)
     }
 
-    private suspend fun saveRoomDecorForInstance(instanceId: Long) {
-        val key = roomDecorKey(instanceId)
-        repository.setSetting(key, decorToJson(decorItems))
-    }
-
-    private fun renderRoomDecor() {
-        decorLayer.removeAllViews()
-        val w = decorLayer.width
-        val h = decorLayer.height
-        if (w <= 0 || h <= 0) {
-            decorLayer.post { renderRoomDecor() }
-            return
-        }
-        decorItems.forEach { item ->
-            val resId = resolveDecorResId(item.path)
-            if (resId == null && !File(item.path).exists()) return@forEach
-            val basePx = (64 * resources.displayMetrics.density * item.scale).roundToInt().coerceIn(40, 140)
-            val iv = ImageView(this).apply {
-                if (resId != null) {
-                    setImageResource(resId)
-                } else {
-                    setImageURI(Uri.fromFile(File(item.path)))
-                }
-                alpha = item.alpha.coerceIn(0.5f, 1f)
-                layoutParams = FrameLayout.LayoutParams(basePx, basePx).apply {
-                    gravity = Gravity.TOP or Gravity.START
-                    leftMargin = (item.nx * (w - basePx)).roundToInt().coerceIn(0, max(0, w - basePx))
-                    topMargin = (item.ny * (h - basePx)).roundToInt().coerceIn(0, max(0, h - basePx))
-                }
-                // Drag to arrange in this room only.
-                setOnTouchListener(object : View.OnTouchListener {
-                    private var downX = 0f
-                    private var downY = 0f
-                    private var startL = 0
-                    private var startT = 0
-                    override fun onTouch(v: View, event: MotionEvent): Boolean {
-                        val lp = v.layoutParams as FrameLayout.LayoutParams
-                        when (event.actionMasked) {
-                            MotionEvent.ACTION_DOWN -> {
-                                downX = event.rawX
-                                downY = event.rawY
-                                startL = lp.leftMargin
-                                startT = lp.topMargin
-                                v.parent?.requestDisallowInterceptTouchEvent(true)
-                                v.setLayerType(View.LAYER_TYPE_HARDWARE, null)
-                                return true
-                            }
-                            MotionEvent.ACTION_MOVE -> {
-                                val nx = (startL + (event.rawX - downX)).roundToInt()
-                                val ny = (startT + (event.rawY - downY)).roundToInt()
-                                val clampedL = nx.coerceIn(0, max(0, w - basePx))
-                                val clampedT = ny.coerceIn(0, max(0, h - basePx))
-                                v.translationX = (clampedL - startL).toFloat()
-                                v.translationY = (clampedT - startT).toFloat()
-                                return true
-                            }
-                            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                                val finalL = (startL + v.translationX).roundToInt().coerceIn(0, max(0, w - basePx))
-                                val finalT = (startT + v.translationY).roundToInt().coerceIn(0, max(0, h - basePx))
-                                v.translationX = 0f
-                                v.translationY = 0f
-                                lp.leftMargin = finalL
-                                lp.topMargin = finalT
-                                v.layoutParams = lp
-                                v.setLayerType(View.LAYER_TYPE_NONE, null)
-                                item.nx = if (w - basePx > 0) finalL.toFloat() / (w - basePx).toFloat() else 0.5f
-                                item.ny = if (h - basePx > 0) finalT.toFloat() / (h - basePx).toFloat() else 0.5f
-                                lifecycleScope.launch(Dispatchers.IO) {
-                                    val id = currentInstance?.instanceId ?: currentInstanceId
-                                    saveRoomDecorForInstance(id)
-                                }
-                                return true
-                            }
-                        }
-                        return false
-                    }
-                })
-                setOnLongClickListener {
-                    decorItems.removeAll { it.id == item.id }
-                    lifecycleScope.launch(Dispatchers.IO) {
-                        val id = currentInstance?.instanceId ?: currentInstanceId
-                        saveRoomDecorForInstance(id)
-                        withContext(Dispatchers.Main) { renderRoomDecor() }
-                    }
-                    Toast.makeText(context, "已删除该装饰", Toast.LENGTH_SHORT).show()
-                    true
-                }
-            }
-            decorLayer.addView(iv)
-        }
-    }
-
-    private fun parseDecorJson(raw: String?): List<RoomDecorItem> {
-        if (raw.isNullOrBlank()) return emptyList()
-        return runCatching {
-            val arr = JSONArray(raw)
-            buildList {
-                for (i in 0 until arr.length()) {
-                    val o = arr.optJSONObject(i) ?: continue
-                    val path = o.optString("path")
-                    if (path.isBlank()) continue
-                    add(
-                        RoomDecorItem(
-                            id = o.optString("id", UUID.randomUUID().toString()),
-                            path = path,
-                            nx = o.optDouble("nx", 0.5).toFloat(),
-                            ny = o.optDouble("ny", 0.5).toFloat(),
-                            scale = o.optDouble("scale", 1.0).toFloat(),
-                            alpha = o.optDouble("alpha", 1.0).toFloat()
-                        )
-                    )
-                }
-            }
-        }.getOrDefault(emptyList())
-    }
-
-    private fun decorToJson(items: List<RoomDecorItem>): String {
-        val arr = JSONArray()
-        items.forEach { item ->
-            val o = JSONObject()
-            o.put("id", item.id)
-            o.put("path", item.path)
-            o.put("nx", item.nx.toDouble())
-            o.put("ny", item.ny.toDouble())
-            o.put("scale", item.scale.toDouble())
-            o.put("alpha", item.alpha.toDouble())
-            arr.put(o)
-        }
-        return arr.toString()
-    }
-
-    private fun copyDecorToInternal(uri: Uri): String? {
-        val dir = File(filesDir, "room_decor/library")
-        if (!dir.exists()) dir.mkdirs()
-        val outFile = File(dir, "decor_${System.currentTimeMillis()}_${UUID.randomUUID()}.png")
-        contentResolver.openInputStream(uri)?.use { input ->
-            FileOutputStream(outFile).use { output ->
-                input.copyTo(output)
-            }
-        } ?: return null
-        return outFile.absolutePath
-    }
-
-    private fun deleteDecorFiles() {
-        // No-op: decor library assets are shared; avoid deleting user library files.
-    }
-
-    private fun roomDecorKey(instanceId: Long): String = "room_decor_$instanceId"
-
-    private fun resolveDecorResId(path: String): Int? {
-        if (!path.startsWith("res://")) return null
-        val name = path.removePrefix("res://").trim()
-        val resId = resources.getIdentifier(name, "drawable", packageName)
-        return if (resId != 0) resId else null
-    }
-
-    private fun builtInDecorEntries(): List<DecorEntry> {
-        return listOf(
-            DecorEntry("气球", resId = R.drawable.fx_balloon_color),
-            DecorEntry("礼物", resId = R.drawable.fx_gift_color),
-            DecorEntry("蛋糕", resId = R.drawable.fx_cake_color),
-            DecorEntry("星光", resId = R.drawable.fx_star_color),
-            DecorEntry("彩带", resId = R.drawable.fx_confetti_color),
-            DecorEntry("派对喷花", resId = R.drawable.fx_party_color),
-            DecorEntry("爱心", resId = R.drawable.fx_heart_color),
-            DecorEntry("音乐符号", resId = R.drawable.fx_music_notes_color),
-            DecorEntry("火焰", resId = R.drawable.fx_fire_color),
-            DecorEntry("睡觉 Zzz", resId = R.drawable.fx_sleep_color),
-            DecorEntry("微笑", resId = R.drawable.fx_smile_color),
-            DecorEntry("思考", resId = R.drawable.fx_think_color),
-            DecorEntry("惊叹", resId = R.drawable.fx_exclaim_color),
-            DecorEntry("波纹", resId = R.drawable.fx_wave_color),
-            DecorEntry("阳光", resId = R.drawable.fx_sun_color),
-            DecorEntry("食物", resId = R.drawable.fx_food_color),
-            DecorEntry("像素砖 1", resId = R.drawable.decor_kenney_tile_0),
-            DecorEntry("像素砖 2", resId = R.drawable.decor_kenney_tile_1),
-            DecorEntry("像素砖 3", resId = R.drawable.decor_kenney_tile_2),
-            DecorEntry("像素砖 4", resId = R.drawable.decor_kenney_tile_3),
-            DecorEntry("像素砖 5", resId = R.drawable.decor_kenney_tile_4),
-            DecorEntry("像素砖 6", resId = R.drawable.decor_kenney_tile_5),
-            DecorEntry("像素砖 7", resId = R.drawable.decor_kenney_tile_6),
-            DecorEntry("像素砖 8", resId = R.drawable.decor_kenney_tile_7),
-            DecorEntry("像素砖 9", resId = R.drawable.decor_kenney_tile_8),
-            DecorEntry("像素砖 10", resId = R.drawable.decor_kenney_tile_9),
-            DecorEntry("像素砖 11", resId = R.drawable.decor_kenney_tile_10),
-            DecorEntry("像素砖 12", resId = R.drawable.decor_kenney_tile_11)
-        )
-    }
-
-    private fun defaultDecorTemplate(): List<RoomDecorItem> {
-        val picks = listOf(
-            RoomDecorItem(UUID.randomUUID().toString(), "res://fx_star_color", 0.08f, 0.09f, 0.95f, 0.9f),
-            RoomDecorItem(UUID.randomUUID().toString(), "res://fx_balloon_color", 0.82f, 0.10f, 1.10f, 0.95f),
-            RoomDecorItem(UUID.randomUUID().toString(), "res://fx_music_note_color", 0.16f, 0.32f, 0.90f, 0.9f),
-            RoomDecorItem(UUID.randomUUID().toString(), "res://fx_heart_color", 0.74f, 0.34f, 0.88f, 0.9f),
-            RoomDecorItem(UUID.randomUUID().toString(), "res://fx_spark_color", 0.52f, 0.14f, 0.82f, 0.9f),
-            RoomDecorItem(UUID.randomUUID().toString(), "res://fx_gift_color", 0.10f, 0.70f, 1.02f, 0.95f),
-            RoomDecorItem(UUID.randomUUID().toString(), "res://fx_cake_color", 0.80f, 0.72f, 1.02f, 0.95f)
-        )
-        return picks
-    }
-
-    private suspend fun loadDecorLibrary(): List<String> {
-        val raw = repository.getSetting("decor_library").firstOrNull()
-        if (raw.isNullOrBlank()) return emptyList()
-        return runCatching {
-            val arr = JSONArray(raw)
-            val originalCount = arr.length()
-            val cleaned = buildList {
-                for (i in 0 until originalCount) {
-                    val path = arr.optString(i)
-                    if (path.isNotBlank() && File(path).exists()) add(path)
-                }
-            }
-            if (cleaned.isNotEmpty() && cleaned.size < originalCount) {
-                val out = JSONArray()
-                cleaned.forEach { out.put(it) }
-                repository.setSetting("decor_library", out.toString())
-            }
-            cleaned
-        }.getOrDefault(emptyList())
-    }
-
-    private suspend fun addToDecorLibrary(path: String) {
-        if (!File(path).exists()) return
-        val existing = loadDecorLibrary().toMutableList()
-        if (!existing.contains(path)) {
-            existing.add(0, path)
-            val arr = JSONArray()
-            existing.take(80).forEach { arr.put(it) }
-            repository.setSetting("decor_library", arr.toString())
-        }
+    private fun toggleConsoleAdvanced() {
+        setConsoleAdvancedVisible(!isConsoleAdvancedVisible)
+        pokeUi()
     }
 
     private fun makeSectionTitle(text: String): TextView {
@@ -1549,9 +1174,8 @@ class PetDetailActivity : AppCompatActivity() {
             }, (index * 90L))
         }
     }
-    
+
     companion object {
         const val EXTRA_PET_INSTANCE_ID = "extra_pet_instance_id"
     }
 }
-

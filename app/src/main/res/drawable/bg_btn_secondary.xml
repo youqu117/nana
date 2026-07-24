@@ -4,10 +4,10 @@
     <item>
         <shape>
             <solid android:color="@color/ui_gray_light" />
-            <corners android:radius="12dp" />
+            <corners android:radius="16dp" />
             <stroke
                 android:width="1dp"
-                android:color="@color/ui_text_mute" />
+                android:color="#CBD5E1" />
         </shape>
     </item>
 </ripple>

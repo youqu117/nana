@@ -1,103 +1,34 @@
 {
-  "version": 1,
-  "id": "dog_shiba_idle",
-  "type": "spritesheet",
-  "image": "sheet.png",
-  "pixel_art": true,
-  "fps": 5,
+  "name": "idle",
   "loop": true,
-  "duration_ms": 800,
-  "anchors": {
-    "root": {
-      "x": 24,
-      "y": 40
-    },
-    "head": {
-      "x": 24,
-      "y": 16
-    },
-    "face": {
-      "x": 24,
-      "y": 20
-    },
-    "tail": {
-      "x": 10,
-      "y": 30
-    },
-    "tongue": {
-      "x": 30,
-      "y": 28
-    }
-  },
-  "hitboxes": {
-    "tap": {
-      "shape": "rect",
-      "x": 8,
-      "y": 10,
-      "w": 32,
-      "h": 30
-    }
-  },
   "frames": [
     {
-      "i": 0,
-      "rect": {
-        "x": 0,
-        "y": 0,
-        "w": 48,
-        "h": 48
-      },
-      "offset": {
-        "x": 0,
-        "y": 0
-      },
-      "duration_ms": 200,
-      "events": []
+      "x": 0,
+      "y": 0,
+      "w": 48,
+      "h": 48,
+      "duration": 280
     },
     {
-      "i": 1,
-      "rect": {
-        "x": 48,
-        "y": 0,
-        "w": 48,
-        "h": 48
-      },
-      "offset": {
-        "x": 0,
-        "y": 0
-      },
-      "duration_ms": 200,
-      "events": []
+      "x": 48,
+      "y": 0,
+      "w": 48,
+      "h": 48,
+      "duration": 220
     },
     {
-      "i": 2,
-      "rect": {
-        "x": 96,
-        "y": 0,
-        "w": 48,
-        "h": 48
-      },
-      "offset": {
-        "x": 0,
-        "y": 0
-      },
-      "duration_ms": 200,
-      "events": []
+      "x": 96,
+      "y": 0,
+      "w": 48,
+      "h": 48,
+      "duration": 280
     },
     {
-      "i": 3,
-      "rect": {
-        "x": 144,
-        "y": 0,
-        "w": 48,
-        "h": 48
-      },
-      "offset": {
-        "x": 0,
-        "y": 0
-      },
-      "duration_ms": 200,
-      "events": []
+      "x": 144,
+      "y": 0,
+      "w": 48,
+      "h": 48,
+      "duration": 220
     }
   ]
 }

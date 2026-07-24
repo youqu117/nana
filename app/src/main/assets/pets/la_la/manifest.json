@@ -5,21 +5,21 @@
   "preview": "pets/la_la/preview.png",
   "static_normal": "pets/la_la/preview.png",
   "static_tongue": "pets/la_la/preview.png",
-  "idle_sheet": "pets/la_la/preview.png",
+  "idle_sheet": "pets/la_la/idle_sheet.png",
   "idle_anim": "pets/la_la/anim/idle/anim.json",
   "default_scale": 1,
   "hitbox": {
     "x": 0,
     "y": 0,
-    "w": 48,
-    "h": 48
+    "w": 566,
+    "h": 768
   },
   "anchors": {
-    "root_x": 24,
-    "root_y": 48,
-    "head_x": 24,
-    "head_y": 10,
-    "face_x": 24,
-    "face_y": 15
+    "root_x": 283,
+    "root_y": 768,
+    "head_x": 283,
+    "head_y": 192,
+    "face_x": 283,
+    "face_y": 256
   }
 }

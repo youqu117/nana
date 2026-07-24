@@ -1,5 +1,5 @@
 <resources>
-    <!-- Base application theme. -->
+    <!-- Base application theme -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
@@ -9,28 +9,27 @@
         <item name="android:navigationBarColor">@color/ui_bg_card</item>
         <item name="android:windowLightStatusBar">true</item>
 
-        <!-- Global default font (Body Text - Readable) -->
+        <!-- Global font -->
         <item name="android:fontFamily">@font/zcool_kuaile</item>
         <item name="fontFamily">@font/zcool_kuaile</item>
 
-        <!-- Consistent typography -->
         <item name="android:textViewStyle">@style/Widget.App.TextView</item>
         <item name="buttonStyle">@style/Widget.App.Button</item>
     </style>
 
-    <!-- Pixel Style Title (For Headers/Stats) -->
+    <!-- Pixel Style Title -->
     <style name="PixelText.Title" parent="Widget.AppCompat.TextView">
         <item name="android:fontFamily">@font/pixel_font</item>
         <item name="fontFamily">@font/pixel_font</item>
         <item name="android:textSize">20sp</item>
         <item name="android:textColor">@color/ui_text_title</item>
-        <item name="android:shadowColor">#40000000</item>
-        <item name="android:shadowDx">4</item>
-        <item name="android:shadowDy">4</item>
-        <item name="android:shadowRadius">0.1</item> <!-- Hard shadow for pixel look -->
+        <item name="android:shadowColor">#20000000</item>
+        <item name="android:shadowDx">2</item>
+        <item name="android:shadowDy">2</item>
+        <item name="android:shadowRadius">0.1</item>
     </style>
 
-    <!-- Pixel Style Value (For Numbers) -->
+    <!-- Pixel Style Value -->
     <style name="PixelText.Value" parent="Widget.AppCompat.TextView">
         <item name="android:fontFamily">@font/pixel_font</item>
         <item name="fontFamily">@font/pixel_font</item>
@@ -41,17 +40,15 @@
     <style name="Widget.App.TextView" parent="Widget.AppCompat.TextView">
         <item name="android:fontFamily">@font/zcool_kuaile</item>
         <item name="fontFamily">@font/zcool_kuaile</item>
-        <!-- reduce “floating” baseline differences across fonts -->
         <item name="android:includeFontPadding">false</item>
     </style>
 
     <style name="Widget.App.Button" parent="Widget.AppCompat.Button">
-        <!-- Buttons use Pixel Font now -->
         <item name="android:fontFamily">@font/pixel_font</item>
         <item name="fontFamily">@font/pixel_font</item>
         <item name="android:includeFontPadding">false</item>
         <item name="android:textAllCaps">false</item>
-        <item name="android:shadowColor">#40000000</item>
+        <item name="android:shadowColor">#20000000</item>
         <item name="android:shadowDx">2</item>
         <item name="android:shadowDy">2</item>
         <item name="android:shadowRadius">0.1</item>

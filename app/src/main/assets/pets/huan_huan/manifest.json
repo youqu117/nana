@@ -5,21 +5,21 @@
   "preview": "pets/huan_huan/preview.png",
   "static_normal": "pets/huan_huan/preview.png",
   "static_tongue": "pets/huan_huan/preview.png",
-  "idle_sheet": "pets/huan_huan/preview.png",
+  "idle_sheet": "pets/huan_huan/idle_sheet.png",
   "idle_anim": "pets/huan_huan/anim/idle/anim.json",
   "default_scale": 1,
   "hitbox": {
     "x": 0,
     "y": 0,
-    "w": 48,
-    "h": 48
+    "w": 554,
+    "h": 768
   },
   "anchors": {
-    "root_x": 24,
-    "root_y": 48,
-    "head_x": 24,
-    "head_y": 10,
-    "face_x": 24,
-    "face_y": 15
+    "root_x": 277,
+    "root_y": 768,
+    "head_x": 277,
+    "head_y": 192,
+    "face_x": 277,
+    "face_y": 256
   }
 }

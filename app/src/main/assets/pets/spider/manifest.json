@@ -9,17 +9,17 @@
   "idle_anim": "pets/spider/anim/idle/anim.json",
   "default_scale": 3,
   "hitbox": {
-    "x": 8,
-    "y": 8,
-    "w": 32,
-    "h": 32
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
   },
   "anchors": {
     "root_x": 24,
-    "root_y": 40,
+    "root_y": 48,
     "head_x": 24,
-    "head_y": 16,
+    "head_y": 12,
     "face_x": 24,
-    "face_y": 22
+    "face_y": 16
   }
 }

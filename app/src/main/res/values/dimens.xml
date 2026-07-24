@@ -6,10 +6,10 @@
     <dimen name="section_spacing">16dp</dimen>
     <dimen name="list_bottom_padding">88dp</dimen>
 
-    <dimen name="card_radius">18dp</dimen>
+    <dimen name="card_radius">20dp</dimen>
     <dimen name="card_radius_small">14dp</dimen>
-    <dimen name="card_elevation">4dp</dimen>
-    <dimen name="card_elevation_high">6dp</dimen>
+    <dimen name="card_elevation">5dp</dimen>
+    <dimen name="card_elevation_high">8dp</dimen>
     <dimen name="card_padding">20dp</dimen>
     <dimen name="card_padding_small">16dp</dimen>
 

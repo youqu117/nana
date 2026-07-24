@@ -5,21 +5,21 @@
   "preview": "pets/you_ha/preview.png",
   "static_normal": "pets/you_ha/preview.png",
   "static_tongue": "pets/you_ha/preview.png",
-  "idle_sheet": "pets/you_ha/preview.png",
+  "idle_sheet": "pets/you_ha/idle_sheet.png",
   "idle_anim": "pets/you_ha/anim/idle/anim.json",
   "default_scale": 1,
   "hitbox": {
     "x": 0,
     "y": 0,
-    "w": 48,
-    "h": 48
+    "w": 674,
+    "h": 1552
   },
   "anchors": {
-    "root_x": 24,
-    "root_y": 48,
-    "head_x": 24,
-    "head_y": 10,
-    "face_x": 24,
-    "face_y": 15
+    "root_x": 337,
+    "root_y": 1552,
+    "head_x": 337,
+    "head_y": 388,
+    "face_x": 337,
+    "face_y": 517
   }
 }
