@@ -11,6 +11,7 @@ import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import com.pixelpet.core.AppContainer
 import com.pixelpet.R
+import kotlinx.coroutines.cancel
 
 class OverlayService : Service() {
     private lateinit var overlayWindowManager: OverlayWindowManager
