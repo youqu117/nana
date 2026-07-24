@@ -7,5 +7,6 @@
   "static_tongue": "pets/dragon/dragon_fire.png",
   "default_scale": 2,
   "hitbox": { "x": 16, "y": 16, "w": 64, "h": 64 },
-  "anchors": { "root_x": 48, "root_y": 80 }
+  "anchors": { "root_x": 48, "root_y": 80 },
+  "sing_emote": "fire"
 }

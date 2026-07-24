@@ -1,28 +1,26 @@
-﻿package com.pixelpet.pet.runtime
+package com.pixelpet.pet.runtime
 
 import com.pixelpet.pet.view.PetView
 
+/**
+ * 连接 [PetRuntime]（状态机）与 [PetView]（渲染）的控制器。
+ *
+ * OverlayWindowManager 通过本类驱动宠物的手势响应与每帧刷新；
+ * PetDetailActivity 目前直接使用 PetRuntime，后续可统一走本类以保持行为一致。
+ */
 class PetController(
     private val petView: PetView,
     private val petRuntime: PetRuntime
-) : PetApi {
+) {
+    /** 每帧调用：推进状态机并把最新状态推给视图。 */
     fun update() {
-        val now = System.currentTimeMillis()
-        petRuntime.tick(now)
+        petRuntime.tick(System.currentTimeMillis())
         petView.updateState(petRuntime.state)
     }
 
-    override fun onTap() {
+    fun onTap() {
         petRuntime.handleTap(System.currentTimeMillis())
         update()
-    }
-
-    override fun requestAction(actionId: String) {
-        // Todo: Implement specific actions
-    }
-
-    override fun notifyEvent(eventId: String) {
-        // Todo: Implement event handling
     }
 
     fun onDoubleTap() {
@@ -34,12 +32,9 @@ class PetController(
         petRuntime.handleLongPressStart()
         update()
     }
-    
+
     fun onRelease() {
         petRuntime.handleRelease()
         update()
     }
 }
-
-
-

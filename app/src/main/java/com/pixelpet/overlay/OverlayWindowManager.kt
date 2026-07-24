@@ -283,7 +283,8 @@ private class OverlayPetUnit(
 
     fun destroy() {
         if (!isShowing) return
-        saveState()
+        // 销毁路径同步落盘，避免 service scope 被取消后异步保存丢失。
+        saveStateBlocking()
         stopLoop()
         if (petView.parent != null) {
             windowManager.removeView(petView)
@@ -292,8 +293,26 @@ private class OverlayPetUnit(
     }
 
     private fun saveState() {
-        val s = petRuntime?.state ?: return
-        val updated = currentEntity.copy(
+        val updated = buildPersistedEntity() ?: return
+        scope.launch {
+            repository.updatePetState(updated)
+        }
+    }
+
+    /**
+     * 同步保存宠物状态。仅在 service 销毁等"协程作用域即将取消"的场景使用，
+     * 保证状态不丢失。单条 Room update 通常 <50ms，不会造成 ANR。
+     */
+    private fun saveStateBlocking() {
+        val updated = buildPersistedEntity() ?: return
+        kotlinx.coroutines.runBlocking(kotlinx.coroutines.Dispatchers.IO) {
+            repository.updatePetState(updated)
+        }
+    }
+
+    private fun buildPersistedEntity(): PetInstanceEntity? {
+        val s = petRuntime?.state ?: return null
+        return currentEntity.copy(
             energy = s.energy,
             mood = s.mood,
             hunger = s.hunger,
@@ -302,9 +321,6 @@ private class OverlayPetUnit(
             x = layoutParams.x,
             y = layoutParams.y
         )
-        scope.launch {
-            repository.updatePetState(updated)
-        }
     }
 
     // --- Loop & Movement ---

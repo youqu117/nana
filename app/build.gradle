@@ -32,6 +32,14 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
+
+    // Room schema 导出目录：配合 AppDatabase 的 exportSchema = true，
+    // 便于版本升级时校验 schema 变更并编写显式 Migration。
+    kapt {
+        arguments {
+            arg("room.schemaLocation", "$projectDir/schemas")
+        }
+    }
 }
 
 dependencies {

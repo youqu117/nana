@@ -1,46 +1,59 @@
-﻿package com.pixelpet.content
+package com.pixelpet.content
 
 import android.content.Context
+import com.pixelpet.core.LogUtils
 import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
+/**
+ * 运行时素材加载入口。
+ *
+ * 资源查找顺序：filesDir（用户导入/解压） -> assets（内置） -> assets 的 .base64 编码副本。
+ */
 object AssetLoader {
+    private const val TAG = "AssetLoader"
+    private const val MANIFEST_RELATIVE = "manifest.json"
+    private const val BASE64_SUFFIX = ".base64"
+
     fun openStream(context: Context, path: String): java.io.InputStream {
+        // 1. 用户文件目录（导入的宠物包）
         val file = java.io.File(context.filesDir, path)
         if (file.exists()) {
             return java.io.FileInputStream(file)
         }
-        
+
+        // 2. 内置 assets
         try {
             return context.assets.open(path)
         } catch (e: java.io.IOException) {
-            // Try loading base64 encoded asset
-            try {
-                val base64Stream = context.assets.open("$path.base64")
-                val base64String = base64Stream.bufferedReader().use { it.readText() }
-                // Remove potential whitespace/newlines
+            // 3. 尝试 base64 编码的内置资源
+            return try {
+                val base64String = context.assets.open("$path$BASE64_SUFFIX").use { stream ->
+                    stream.bufferedReader().use { it.readText() }
+                }
                 val cleanBase64 = base64String.replace("\\s".toRegex(), "")
                 val decodedBytes = android.util.Base64.decode(cleanBase64, android.util.Base64.DEFAULT)
-                return java.io.ByteArrayInputStream(decodedBytes)
-            } catch (e2: Exception) {
+                java.io.ByteArrayInputStream(decodedBytes)
+            } catch (e2: java.io.IOException) {
+                // 抛出原始异常，保留"资源不存在"的语义而非"base64 解析失败"。
                 throw e
             }
         }
     }
 
     fun loadManifest(context: Context, petId: String): ContentPackManifest? {
-        try {
-            val path = "pets/$petId/manifest.json"
+        return try {
+            val path = "pets/$petId/$MANIFEST_RELATIVE"
             val jsonString = openStream(context, path).use { stream ->
                 BufferedReader(InputStreamReader(stream)).use { it.readText() }
             }
-            
+
             val json = JSONObject(jsonString)
             val anchorsJson = json.optJSONObject("anchors")
             val hitboxJson = json.optJSONObject("hitbox")
-            
-            return ContentPackManifest(
+
+            ContentPackManifest(
                 id = json.getString("id"),
                 name = json.getString("name"),
                 version = json.optInt("version", 1),
@@ -63,32 +76,30 @@ object AssetLoader {
                     headY = anchorsJson?.optInt("head_y") ?: 0,
                     faceX = anchorsJson?.optInt("face_x") ?: 0,
                     faceY = anchorsJson?.optInt("face_y") ?: 0
-                )
+                ),
+                singEmote = json.optString("sing_emote", "").takeIf { it.isNotBlank() }
             )
         } catch (e: Exception) {
-            e.printStackTrace()
-            return null
+            // manifest 缺失或损坏都不应让应用崩溃，记录后返回 null 由调用方跳过该宠物。
+            LogUtils.w(TAG, "loadManifest failed for petId=$petId", e)
+            null
         }
     }
 
     fun assetExists(context: Context, path: String): Boolean {
         if (path.isBlank()) return false
-        
-        // Check internal storage first
         val file = java.io.File(context.filesDir, path)
         if (file.exists()) return true
-        
         return try {
             context.assets.open(path).close()
             true
-        } catch (e: Exception) {
+        } catch (e: java.io.IOException) {
             try {
-                context.assets.open("$path.base64").close()
+                context.assets.open("$path$BASE64_SUFFIX").close()
                 true
-            } catch (e2: Exception) {
+            } catch (e2: java.io.IOException) {
                 false
             }
         }
     }
 }
-

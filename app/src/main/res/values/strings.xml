@@ -97,6 +97,72 @@
     <string name="dialog_settings_title">全局设置</string>
     <string name="label_scale">缩放: %.1fx</string>
     <string name="label_opacity">透明度: %d%%</string>
+
+    <!-- Home -->
+    <string name="home_empty_subtitle">领养一只宠物开始冒险</string>
+    <string name="home_progress_zero">成长进度 0%%</string>
+    <string name="home_pet_subtitle">LV.%1$d %2$s · %3$s</string>
+    <string name="home_progress_format">成长进度 %1$d%%</string>
+    <string name="home_error_format">错误: %1$s</string>
+    <string name="home_guide_dialog_title">玩家指引</string>
+    <string name="home_guide_dialog_ok">知道了</string>
+    <string name="home_guide_tip_1">点一下宠物可以提升亲密度和心情。</string>
+    <string name="home_guide_tip_2">长按并拖拽宠物可以调整位置。</string>
+    <string name="home_guide_tip_3">在小屋里试试小提琴和钢琴互动。</string>
+    <string name="home_guide_tip_4">专注模式可与 Todo 联动，减少刷手机。</string>
+    <string name="home_guide_tip_5">等级由亲密度、心情、精力、饱腹和陪伴天数共同决定。</string>
+    <string name="home_guide_step_1">1. 在商店领养宠物后，可在我的宠物里召唤到桌面。</string>
+    <string name="home_guide_step_2">2. 互动会提升亲密度与心情，喂食会提升饱腹，休息会恢复精力。</string>
+    <string name="home_guide_step_3">3. 等级经验来源：亲密度>心情>精力>饱腹>陪伴天数。</string>
+    <string name="home_guide_step_4">4. 小屋左上角可查看当前等级与经验条进度。</string>
+    <string name="home_guide_step_5">5. 指标含义：精力影响行动频率，心情影响互动收益，饱腹影响衰减速度。</string>
+    <string name="home_guide_step_6">6. 专注模式搭配 Todo 可减少沉迷手机，可配置锁屏可用应用白名单。</string>
+    <string name="home_permission_rationale">为了实现桌宠悬浮和专注锁屏功能，App 需要以下权限：\n\n1. 悬浮窗权限 (显示桌宠)\n2. 无障碍服务 (专注锁屏检测)\n\n请点击“去设置”依次开启。</string>
+    <string name="home_permission_go_settings">去设置</string>
+    <string name="home_permission_later">稍后</string>
+    <string name="home_permission_overlay_first">请先开启悬浮窗权限</string>
+    <string name="home_permission_accessibility_first">请开启 Todo 无障碍服务</string>
+
+    <!-- Focus -->
+    <string name="focus_need_accessibility">请开启 Todo 无障碍服务</string>
+    <string name="focus_invalid_duration">请输入有效时长</string>
+    <string name="focus_started">专注已开始</string>
+    <string name="focus_stopped">已停止专注</string>
+    <string name="focus_btn_stop">停止专注</string>
+    <string name="focus_running_format">专注中：%1$02d:%2$02d%3$s</string>
+    <string name="focus_today_format">今日：%1$d 分钟（%2$d 次）</string>
+    <string name="focus_no_apps">未找到可用应用</string>
+    <string name="focus_allowed_updated">已更新可用应用白名单</string>
+    <string name="focus_allowed_summary_format">可用应用: %1$s</string>
+
+    <!-- Todo -->
+    <string name="todo_completed_cannot_focus">该任务已完成，请选择未完成任务</string>
+    <string name="todo_selected_format">已选择：%1$s</string>
+    <string name="todo_empty_text">任务内容不能为空</string>
+    <string name="todo_no_done_to_clear">没有可清理的已完成任务</string>
+    <string name="todo_cleared_done">已清理已完成任务</string>
+    <string name="todo_summary_format">总计 %1$d · 已完成 %2$d · 待办 %3$d</string>
+    <string name="todo_status_done">已完成</string>
+    <string name="todo_item_hint_pending">点按完成 · 长按专注</string>
+
+    <!-- Lock -->
+    <string name="lock_emergency_unlock">紧急解锁</string>
+
+    <!-- Settings -->
+    <string name="settings_reset_done">已恢复默认设置</string>
+    <string name="settings_invalid_package">无效的宠物包：缺少 manifest.json</string>
+    <string name="settings_pet_name_hint">宠物名字</string>
+    <string name="settings_enter_pet_name">输入宠物名字</string>
+    <string name="settings_btn_import">导入</string>
+    <string name="settings_name_empty">名字不能为空</string>
+    <string name="settings_no_custom_assets">没有自定义素材</string>
+    <string name="settings_manage_assets_title">管理自定义素材</string>
+    <string name="settings_btn_close">关闭</string>
+    <string name="settings_delete_asset_title">删除素材</string>
+    <string name="settings_delete_asset_msg">确定要删除 \'%1$s\' 吗？此操作不可撤销。</string>
+    <string name="settings_btn_delete">删除</string>
+    <string name="settings_deleted">已删除</string>
+    <string name="settings_pet_full">已吃饱喝足了！</string>
 </resources>
 
 

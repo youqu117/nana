@@ -1,25 +1,26 @@
-﻿package com.pixelpet.pet.view
+package com.pixelpet.pet.view
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.util.AttributeSet
+import android.view.animation.LinearInterpolator
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
-import android.view.animation.LinearInterpolator
-import com.pixelpet.content.AssetLoader
 import com.pixelpet.content.ContentPackManifest
+import com.pixelpet.core.LogUtils
 import com.pixelpet.pet.model.PetBehavior
 import com.pixelpet.pet.model.PetState
+import com.pixelpet.util.BitmapUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.math.max
-import kotlin.math.min
 
 class PetView @JvmOverloads constructor(
     context: Context,
@@ -29,35 +30,34 @@ class PetView @JvmOverloads constructor(
 
     private val imageView = ImageView(context)
     private val sleepBubble = TextView(context)
-    
+
     // Assets
-    private var idleSheet: Bitmap? = null
     private var staticBitmap: Bitmap? = null
     private var staticAltBitmap: Bitmap? = null
-    
+
     // State
     private var baseScale = 1.0f
     private var displayScale = 1.0f
     private var facingDirection = 1
     private var usingAltForm = false
     private var altFormUntilMs = 0L
-    
-    // Animation
-    private var currentFrameIndex = 0
-    private var lastFrameTime = 0L
-    private var frameDuration = 200L // Default 200ms
-    private var frameCount = 1
+
     private var sleepAnimator: AnimatorSet? = null
 
+    /**
+     * View 自身的作用域：[loadAssets] 的协程在此运行，
+     * 在 [onDetachedFromWindow] 时统一取消，避免 Activity/Service 销毁后协程仍在后台解码造成泄漏。
+     */
+    private val viewScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private var loadJob: Job? = null
+
     init {
-        // Image View Setup
         imageView.adjustViewBounds = true
         imageView.scaleType = ImageView.ScaleType.FIT_CENTER
         val lp = LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT)
         lp.gravity = android.view.Gravity.CENTER
         addView(imageView, lp)
 
-        // Sleep Bubble Setup
         sleepBubble.text = "ZzZ"
         sleepBubble.textSize = 26f
         sleepBubble.setTextColor(0xFF5D4037.toInt())
@@ -74,92 +74,38 @@ class PetView @JvmOverloads constructor(
     }
 
     fun loadAssets(manifest: ContentPackManifest) {
-        // Simple loading logic. In a real app, use AssetLoader or Glide/Coil.
-        // Assuming manifests provide paths relative to assets/
-        CoroutineScope(Dispatchers.IO).launch {
+        // 取消上一次未完成的加载，避免快速连续切换素材时旧协程覆盖新状态。
+        loadJob?.cancel()
+        loadJob = viewScope.launch {
             try {
-                // Load Static
-                val staticPath = if (manifest.staticNormal.isNotBlank()) {
-                    manifest.staticNormal
-                } else {
-                    manifest.preview
-                }
+                val staticPath = if (manifest.staticNormal.isNotBlank()) manifest.staticNormal else manifest.preview
                 val altPath = manifest.staticTongue.takeIf { it.isNotBlank() }
                 val targetW = manifest.hitbox.w.takeIf { it > 0 }
                 val targetH = manifest.hitbox.h.takeIf { it > 0 }
-                val staticBmp = loadBitmapFromAssets(staticPath, targetW, targetH)
-                val altBmp = altPath?.let { loadBitmapFromAssets(it, targetW, targetH) }
-                
-                // Load Idle Sheet (if exists)
-                // For simplicity, we might just use static for now unless we parse the sheet
-                // But the user wants "ZZZ" and hearts, which are overlays.
-                
-                withContext(Dispatchers.Main) {
-                    staticBitmap = staticBmp
-                    staticAltBitmap = altBmp
-                    usingAltForm = false
-                    altFormUntilMs = 0L
-                    applyCurrentFormBitmap()
-                    baseScale = manifest.defaultScale.toFloat()
-                    updateLayoutSize()
+
+                val staticBmp = withContext(Dispatchers.IO) {
+                    BitmapUtils.decodeSampledFromPack(context, staticPath, targetW, targetH)
                 }
+                val altBmp = altPath?.let {
+                    withContext(Dispatchers.IO) {
+                        BitmapUtils.decodeSampledFromPack(context, it, targetW, targetH)
+                    }
+                }
+
+                staticBitmap = staticBmp
+                staticAltBitmap = altBmp
+                usingAltForm = false
+                altFormUntilMs = 0L
+                applyCurrentFormBitmap()
+                baseScale = manifest.defaultScale.toFloat()
+                updateLayoutSize()
             } catch (e: Exception) {
-                e.printStackTrace()
+                LogUtils.e(TAG, "loadAssets failed for ${manifest.id}", e)
             }
         }
-    }
-    
-    private fun loadBitmapFromAssets(path: String, targetW: Int?, targetH: Int?): Bitmap? {
-        return try {
-            val boundsOptions = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-            AssetLoader.openStream(context, path).use { BitmapFactory.decodeStream(it, null, boundsOptions) }
-
-            val sourceW = boundsOptions.outWidth
-            val sourceH = boundsOptions.outHeight
-            if (sourceW <= 0 || sourceH <= 0) return null
-
-            val desiredW = (targetW ?: sourceW).coerceIn(1, MAX_BITMAP_DIM_PX)
-            val desiredH = (targetH ?: sourceH).coerceIn(1, MAX_BITMAP_DIM_PX)
-            val sampleSize = calculateInSampleSize(sourceW, sourceH, desiredW, desiredH)
-
-            val decodeOptions = BitmapFactory.Options().apply {
-                inSampleSize = sampleSize
-                inScaled = false
-                inPreferredConfig = Bitmap.Config.ARGB_8888
-            }
-
-            val decoded = AssetLoader.openStream(context, path).use {
-                BitmapFactory.decodeStream(it, null, decodeOptions)
-            } ?: return null
-
-            if (decoded.width <= desiredW && decoded.height <= desiredH) {
-                decoded
-            } else {
-                val ratio = min(desiredW.toFloat() / decoded.width, desiredH.toFloat() / decoded.height)
-                val scaledW = max(1, (decoded.width * ratio).toInt())
-                val scaledH = max(1, (decoded.height * ratio).toInt())
-                val scaled = Bitmap.createScaledBitmap(decoded, scaledW, scaledH, false)
-                if (scaled !== decoded) decoded.recycle()
-                scaled
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
-        }
-    }
-
-    private fun calculateInSampleSize(sourceW: Int, sourceH: Int, reqW: Int, reqH: Int): Int {
-        var sampleSize = 1
-        var halfW = sourceW / 2
-        var halfH = sourceH / 2
-        while (halfW / sampleSize >= reqW && halfH / sampleSize >= reqH) {
-            sampleSize *= 2
-        }
-        return sampleSize.coerceAtLeast(1)
     }
 
     fun updateState(state: PetState) {
-        // Sleep Bubble
         if (state.behavior == PetBehavior.SLEEP) {
             sleepBubble.visibility = VISIBLE
             startSleepAnimation()
@@ -168,15 +114,12 @@ class PetView @JvmOverloads constructor(
             stopSleepAnimation()
         }
 
-        // Auto revert temporary transformed form.
+        // 临时变身到期自动还原。
         if (usingAltForm && altFormUntilMs > 0L && System.currentTimeMillis() >= altFormUntilMs) {
             usingAltForm = false
             altFormUntilMs = 0L
             applyCurrentFormBitmap()
         }
-
-        // Update Animation Frame if needed
-        // For now, we keep it simple with static image + flipping
     }
 
     private fun startSleepAnimation() {
@@ -255,22 +198,24 @@ class PetView @JvmOverloads constructor(
     private fun updateLayoutSize() {
         val density = context.resources.displayMetrics.density
         val totalScale = baseScale * displayScale * density
-        
+
         val drawable = imageView.drawable ?: return
         val w = drawable.intrinsicWidth
         val h = drawable.intrinsicHeight
         if (w <= 0 || h <= 0) return
-        
-        val targetW = (w * totalScale).toInt()
-        val targetH = (h * totalScale).toInt()
-        
-        imageView.layoutParams.width = targetW
-        imageView.layoutParams.height = targetH
+
+        imageView.layoutParams.width = (w * totalScale).toInt()
+        imageView.layoutParams.height = (h * totalScale).toInt()
         imageView.requestLayout()
     }
 
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        stopSleepAnimation()
+        viewScope.cancel()
+    }
+
     companion object {
-        private const val MAX_BITMAP_DIM_PX = 512
+        private const val TAG = "PetView"
     }
 }
-

@@ -1,4 +1,4 @@
-﻿package com.pixelpet.overlay
+package com.pixelpet.overlay
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -9,36 +9,30 @@ import android.content.Intent
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
-import com.pixelpet.data.AppDatabase
-import com.pixelpet.data.PetRepository
+import com.pixelpet.core.AppContainer
 import com.pixelpet.R
 
 class OverlayService : Service() {
     private lateinit var overlayWindowManager: OverlayWindowManager
-    private val scope = CoroutineScope(Dispatchers.Main)
+    private val scope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Main)
 
     override fun onCreate() {
         super.onCreate()
         isServiceRunning = true
-        
-        // Android 14 (SDK 34) requires specifying the service type
+
+        // Android 14 (SDK 34) 要求启动前台服务时声明 service type。
         if (Build.VERSION.SDK_INT >= 34) {
-            startForeground(NOTIFICATION_ID, buildNotification(), android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
+            startForeground(
+                NOTIFICATION_ID,
+                buildNotification(),
+                android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
+            )
         } else {
             startForeground(NOTIFICATION_ID, buildNotification())
         }
-        
-        val db = AppDatabase.getDatabase(this)
-        val repo = PetRepository(db.petDao(), db.settingsDao())
-        
+
+        val repo = AppContainer.get(this)
         overlayWindowManager = OverlayWindowManager(this, repo, scope)
-        
-        // Load enabled pets
-        // For now, we just show the window manager which defaults to a pet
-        // In future, we pass the instance data to the manager
         overlayWindowManager.show()
     }
 
@@ -52,6 +46,8 @@ class OverlayService : Service() {
 
     override fun onDestroy() {
         isServiceRunning = false
+        // 先让 OverlayWindowManager 同步落盘再取消协程作用域，
+        // 否则 hide() 内部的异步保存可能被随后 cancel() 取消，造成状态丢失。
         overlayWindowManager.hide()
         scope.cancel()
         super.onDestroy()
@@ -61,26 +57,28 @@ class OverlayService : Service() {
 
     private fun buildNotification(): Notification {
         val stopIntent = Intent(this, OverlayService::class.java).apply { action = ACTION_STOP }
-        val stopPendingIntent = android.app.PendingIntent.getService(this, 0, stopIntent, android.app.PendingIntent.FLAG_IMMUTABLE)
+        val stopPendingIntent = android.app.PendingIntent.getService(
+            this, 0, stopIntent, android.app.PendingIntent.FLAG_IMMUTABLE
+        )
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createNotificationChannel()
         }
 
-        val builder = NotificationCompat.Builder(this, CHANNEL_ID)
+        return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle(getString(R.string.notification_title))
             .setContentText(getString(R.string.notification_text))
-            .setSmallIcon(android.R.drawable.star_on)
+            // 使用应用自有的单色图标，避免 Android 12+ 通知栏渲染异常。
+            .setSmallIcon(R.drawable.ic_energy)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .addAction(
                 NotificationCompat.Action(
-                    android.R.drawable.ic_menu_close_clear_cancel,
+                    R.drawable.ic_pixel_delete,
                     getString(R.string.notification_action_exit),
                     stopPendingIntent
                 )
             )
-
-        return builder.build()
+            .build()
     }
 
     private fun createNotificationChannel() {
@@ -95,12 +93,14 @@ class OverlayService : Service() {
     }
 
     companion object {
+        private const val TAG = "OverlayService"
         private const val CHANNEL_ID = "overlay_pet_channel"
         private const val NOTIFICATION_ID = 1001
         private const val ACTION_STOP = "com.pixelpet.overlay.ACTION_STOP"
 
+        @Volatile
         var isServiceRunning = false
-
+            private set
 
         fun start(context: Context) {
             val intent = Intent(context, OverlayService::class.java)
@@ -112,8 +112,7 @@ class OverlayService : Service() {
         }
 
         fun stop(context: Context) {
-            val intent = Intent(context, OverlayService::class.java)
-            context.stopService(intent)
+            context.stopService(Intent(context, OverlayService::class.java))
         }
     }
 }

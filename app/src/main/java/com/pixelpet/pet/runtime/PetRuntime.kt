@@ -187,9 +187,10 @@ class PetRuntime(
         state = state.applySing()
         state = state.withBehavior(PetBehavior.CUTE)
         emitEmote(PetEmote.SING, nowMs)
-        if (manifest.id == "dragon") {
-            emitEmote(PetEmote.FIRE, nowMs)
-        }
+        // 通过 manifest 配置驱动额外表情（如龙喷火），避免硬编码宠物 id。
+        manifest.singEmote
+            ?.let { name -> runCatching { PetEmote.valueOf(name.uppercase()) }.getOrNull() }
+            ?.let { emitEmote(it, nowMs) }
     }
 
     fun handleHappyBurst(nowMs: Long) {
