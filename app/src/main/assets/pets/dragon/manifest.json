@@ -8,5 +8,15 @@
   "default_scale": 2,
   "hitbox": { "x": 16, "y": 16, "w": 64, "h": 64 },
   "anchors": { "root_x": 48, "root_y": 80 },
-  "sing_emote": "fire"
+  "sing_emote": "fire",
+  "sounds": {
+    "tap": "pets/dragon/sounds/tap.ogg",
+    "feed": "pets/dragon/sounds/crunch.ogg",
+    "sing": "pets/dragon/sounds/roar.ogg",
+    "greet": "pets/dragon/sounds/growl.ogg",
+    "sleep": "pets/dragon/sounds/snore.ogg",
+    "wake": "pets/dragon/sounds/yawn.ogg",
+    "music": "pets/dragon/sounds/hum.ogg",
+    "fire": "pets/dragon/sounds/flame.ogg"
+  }
 }

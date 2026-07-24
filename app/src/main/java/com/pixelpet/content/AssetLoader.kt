@@ -77,7 +77,15 @@ object AssetLoader {
                     faceX = anchorsJson?.optInt("face_x") ?: 0,
                     faceY = anchorsJson?.optInt("face_y") ?: 0
                 ),
-                singEmote = json.optString("sing_emote", "").takeIf { it.isNotBlank() }
+                singEmote = json.optString("sing_emote", "").takeIf { it.isNotBlank() },
+                sounds = json.optJSONObject("sounds")?.let { soundsJson ->
+                    mutableMapOf<String, String>().apply {
+                        soundsJson.keys().forEach { key ->
+                            val value = soundsJson.optString(key, "").takeIf { it.isNotBlank() }
+                            if (value != null) put(key, value)
+                        }
+                    }
+                } ?: emptyMap()
             )
         } catch (e: Exception) {
             // manifest 缺失或损坏都不应让应用崩溃，记录后返回 null 由调用方跳过该宠物。

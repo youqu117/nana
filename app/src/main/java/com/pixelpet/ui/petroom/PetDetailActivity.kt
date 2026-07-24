@@ -41,6 +41,7 @@ import com.pixelpet.pet.model.PetBehavior
 import com.pixelpet.pet.interaction.PetEmote
 import com.pixelpet.pet.interaction.PetEmoteEvent
 import com.pixelpet.pet.level.LevelSystem
+import com.pixelpet.audio.SoundManager
 import com.pixelpet.pet.runtime.PetRuntime
 import com.pixelpet.pet.view.PetView
 import com.pixelpet.R
@@ -104,6 +105,7 @@ class PetDetailActivity : AppCompatActivity() {
     private var lastFxAnchorY = 0f
     private var lastInstanceEnabled: Boolean? = null
     private var suppressRoomSyncUntilMs = 0L
+    private var soundManager: SoundManager? = null
     private val autoHideRunnable = Runnable {
         setConsoleVisible(false)
         setStatusVisible(false)
@@ -170,6 +172,12 @@ class PetDetailActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         stopAnimationLoop()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        soundManager?.release()
+        soundManager = null
     }
 
     private fun startAnimationLoop() {
@@ -408,6 +416,7 @@ class PetDetailActivity : AppCompatActivity() {
         // Pet Interaction
         petView.setOnClickListener {
             petRuntime?.handleTap(System.currentTimeMillis())
+            soundManager?.play("tap")
             petView.animate().cancel()
             petView.animate().scaleX(1.08f).scaleY(1.08f).setDuration(90).withEndAction {
                 petView.animate().scaleX(1f).scaleY(1f).setDuration(120).start()
@@ -506,6 +515,14 @@ class PetDetailActivity : AppCompatActivity() {
             val manifest = AssetLoader.loadManifest(this@PetDetailActivity, assetId) ?: return@launch
             withContext(Dispatchers.Main) {
                 petView.loadAssets(manifest)
+
+                soundManager?.release()
+                val sm = SoundManager(this@PetDetailActivity)
+                soundManager = sm
+                if (manifest.sounds.isNotEmpty()) {
+                    sm.load(this@PetDetailActivity, manifest.sounds)
+                }
+
                 petRuntime = PetRuntime(manifest)
                 currentAssetId = manifest.id
                 petRuntime?.state?.let { petView.updateState(it) }
@@ -623,6 +640,7 @@ class PetDetailActivity : AppCompatActivity() {
             
             // Interaction effect
             petRuntime?.handleFeed()
+            soundManager?.play("feed")
             spawnHeart()
             spawnIconListBurst(
                 drawableSet = listOf(R.drawable.fx_food_color, R.drawable.fx_spark_color, R.drawable.fx_heart_color),
@@ -669,9 +687,9 @@ class PetDetailActivity : AppCompatActivity() {
         lifecycleScope.launch {
              val instance = repository.getInstanceById(currentInstanceId) ?: return@launch
              AlertDialog.Builder(this@PetDetailActivity)
-                .setTitle("Delete Pet?")
-                .setMessage("Are you sure you want to delete ${instance.name}?")
-                .setPositiveButton("Delete") { _, _ ->
+                .setTitle(getString(R.string.action_delete))
+                .setMessage(getString(R.string.msg_confirm_delete, instance.name))
+                .setPositiveButton(getString(R.string.action_delete)) { _, _ ->
                     lifecycleScope.launch {
                         repository.deleteInstance(instance)
                         deleteDecorFiles()
@@ -679,7 +697,7 @@ class PetDetailActivity : AppCompatActivity() {
                         finish()
                     }
                 }
-                .setNegativeButton("Cancel", null)
+                .setNegativeButton(getString(R.string.action_cancel), null)
                 .show()
         }
     }
@@ -721,6 +739,7 @@ class PetDetailActivity : AppCompatActivity() {
         suppressRoomSyncUntilMs = System.currentTimeMillis() + 900L
         lastMusicSource = source
         petRuntime?.handlePlayMusic(System.currentTimeMillis())
+        soundManager?.play("music")
         // Visual FX is driven by PetRuntime emote events to avoid duplicate effects.
         pushStateNow()
         pokeUi()
@@ -731,9 +750,11 @@ class PetDetailActivity : AppCompatActivity() {
         petRuntime?.handleSleepToggle()
         val behavior = petRuntime?.state?.behavior
         if (behavior == PetBehavior.SLEEP) {
-            Toast.makeText(this, "已进入睡觉模式", Toast.LENGTH_SHORT).show()
+            soundManager?.play("sleep")
+            Toast.makeText(this, getString(R.string.pet_sleep_mode), Toast.LENGTH_SHORT).show()
         } else {
-            Toast.makeText(this, "宠物醒来了", Toast.LENGTH_SHORT).show()
+            soundManager?.play("wake")
+            Toast.makeText(this, getString(R.string.pet_wake_up), Toast.LENGTH_SHORT).show()
         }
         pushStateNow()
         pokeUi()
@@ -742,6 +763,7 @@ class PetDetailActivity : AppCompatActivity() {
     private fun greet() {
         suppressRoomSyncUntilMs = System.currentTimeMillis() + 900L
         petRuntime?.handleGreet(System.currentTimeMillis())
+        soundManager?.play("greet")
         pushStateNow()
         pokeUi()
     }
@@ -749,6 +771,7 @@ class PetDetailActivity : AppCompatActivity() {
     private fun sing() {
         suppressRoomSyncUntilMs = System.currentTimeMillis() + 900L
         petRuntime?.handleSing(System.currentTimeMillis())
+        soundManager?.play("sing")
         pushStateNow()
         pokeUi()
     }
@@ -802,6 +825,7 @@ class PetDetailActivity : AppCompatActivity() {
     }
 
     private fun handleEmote(event: PetEmoteEvent) {
+        soundManager?.playForEmote(event.type.name)
         val state = petRuntime?.state
         val moodBoost = ((state?.mood ?: 50) / 35)
         val levelBoost = (currentInstance?.let { LevelSystem.fromPet(it).level } ?: 1) / 4

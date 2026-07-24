@@ -148,6 +148,10 @@
     <!-- Lock -->
     <string name="lock_emergency_unlock">紧急解锁</string>
 
+    <!-- Pet Room -->
+    <string name="pet_sleep_mode">已进入睡觉模式</string>
+    <string name="pet_wake_up">宠物醒来了</string>
+
     <!-- Settings -->
     <string name="settings_reset_done">已恢复默认设置</string>
     <string name="settings_invalid_package">无效的宠物包：缺少 manifest.json</string>

@@ -12,6 +12,8 @@ import android.view.View
 import com.pixelpet.data.PetInstanceEntity
 import com.pixelpet.data.PetRepository
 import com.pixelpet.input.GestureHandler
+import com.pixelpet.audio.SoundManager
+import com.pixelpet.content.AssetLoader
 import com.pixelpet.pet.model.PetBehavior
 import com.pixelpet.pet.runtime.PetController
 import com.pixelpet.pet.runtime.PetRuntime
@@ -21,7 +23,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlin.math.max
 import kotlin.math.roundToInt
-import com.pixelpet.content.AssetLoader
 
 class OverlayWindowManager(
     private val context: Context,
@@ -129,6 +130,7 @@ private class OverlayPetUnit(
     private val petView = PetView(context)
     private var petRuntime: PetRuntime? = null
     private var petController: PetController? = null
+    private var soundManager: SoundManager? = null
     
     private var isShowing = false
     private val handler = Handler(Looper.getMainLooper())
@@ -233,10 +235,19 @@ private class OverlayPetUnit(
             if (manifest != null) {
                 kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
                     petView.loadAssets(manifest)
+
+                    // 释放旧宠物的声音资源，再创建新的。
+                    soundManager?.release()
+                    val sm = SoundManager(context)
+                    soundManager = sm
+                    if (manifest.sounds.isNotEmpty()) {
+                        sm.load(context, manifest.sounds)
+                    }
+
                     val rt = PetRuntime(manifest)
                     petRuntime = rt
-                    petController = PetController(petView, rt)
-                    
+                    petController = PetController(petView, rt, sm)
+
                     // Restore State
                     val loadedState = PetState(
                         energy = currentEntity.energy,
@@ -286,6 +297,8 @@ private class OverlayPetUnit(
         // 销毁路径同步落盘，避免 service scope 被取消后异步保存丢失。
         saveStateBlocking()
         stopLoop()
+        soundManager?.release()
+        soundManager = null
         if (petView.parent != null) {
             windowManager.removeView(petView)
         }
